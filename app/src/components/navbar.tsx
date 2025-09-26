@@ -72,8 +72,8 @@ export default function Navbar() {
     },
   ];
   return (
-    <header className="sticky px-8 top-0 z-40 w-full border-b bg-background/80 backdrop-blur-sm">
-      <div className=" flex h-16 items-center justify-between">
+    <header className="sticky px-8 top-0 z-[60] w-full border-b bg-background/80 backdrop-blur-sm">
+      <div className="flex h-16 items-center justify-between">
         <div className="flex items-center gap-6">
           <Logo />
           {/* Mobile menu button */}
@@ -171,22 +171,21 @@ export default function Navbar() {
             <NavigationMenuList>
               {navItems.map((item) => (
                 <NavigationMenuItem key={item.path}>
-                  <Link href={item.path}>
-                    <NavigationMenuLink
-                      className={cn(
-                        navigationMenuTriggerStyle(),
-                        "bg-transparent",
-                        pathname === item.path && "text-primary font-medium"
-                      )}
-                    >
-                      {item.label}
-                      {pathname === item.path && (
-                        <motion.div
-                          className="absolute -bottom-[1px] left-0 right-0 h-[2px] bg-primary"
-                          layoutId="navbar-indicator"
-                        />
-                      )}
-                    </NavigationMenuLink>
+                  <Link
+                    href={item.path}
+                    className={cn(
+                      navigationMenuTriggerStyle(),
+                      "bg-transparent",
+                      pathname === item.path && "text-primary font-medium"
+                    )}
+                  >
+                    {item.label}
+                    {pathname === item.path && (
+                      <motion.div
+                        className="absolute -bottom-[1px] left-0 right-0 h-[2px] bg-primary"
+                        layoutId="navbar-indicator"
+                      />
+                    )}
                   </Link>
                 </NavigationMenuItem>
               ))}

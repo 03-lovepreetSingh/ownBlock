@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Footer } from "../components/layouts/footer";
-import { motion } from "framer-motion";
 import Navbar from "../components/navbar";
 import { UserProvider } from "../context/user-context";
 import { ThemeProvider } from "next-themes";
 import { ToasterProvider } from "../components/ui/toaster";
+import { MotionMain } from "../components/motion-wrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,14 +37,20 @@ export default function RootLayout({
           attribute="class"
           defaultTheme="system"
           themes={["light", "dark"]}
-          forcedTheme="dark"
         >
           <UserProvider>
             <ToasterProvider>
               <div className="flex min-h-screen flex-col">
                 <Navbar />
 
-                {children}
+                <MotionMain 
+                  className="flex-1"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  {children}
+                </MotionMain>
 
                 <Footer />
               </div>

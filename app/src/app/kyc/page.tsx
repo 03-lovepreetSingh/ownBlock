@@ -354,7 +354,7 @@ export default function KycPage() {
             {/* Wallet address */}
             <div className="border rounded-md p-4">
               <h3 className="font-medium mb-2">Wallet Address</h3>
-              <p className="text-sm font-mono bg-muted p-2 rounded flex items-center justify-between">
+              <div className="text-sm font-mono bg-muted p-2 rounded flex items-center justify-between">
                 <span>{user.address}</span>
                 <Tooltip content="Address verified">
                   <svg
@@ -373,7 +373,7 @@ export default function KycPage() {
                     <polyline points="22 4 12 14.01 9 11.01"></polyline>
                   </svg>
                 </Tooltip>
-              </p>
+              </div>
             </div>
 
             {/* Document checklist */}

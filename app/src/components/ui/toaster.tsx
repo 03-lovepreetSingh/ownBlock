@@ -12,11 +12,12 @@ interface ToasterContextType {
 }
 const ToasterContext = createContext<ToasterContextType | undefined>(undefined);
 export const useToast = () => {
-  //   const context = useContext(ToasterContext);
-  //   if (context === undefined) {
-  //     throw new Error("useToast must be used within a ToasterProvider");
-  //   }
-  return context;
+  const context = useContext(ToasterContext);
+  if (context === undefined) {
+    throw new Error("useToast must be used within a ToasterProvider");
+  } else {
+    return context;
+  }
 };
 export function ToasterProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);

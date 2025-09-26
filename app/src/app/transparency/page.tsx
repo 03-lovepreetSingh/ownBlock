@@ -1,4 +1,5 @@
-import React, { Component } from "react";
+"use client";
+import React from "react";
 import { motion } from "framer-motion";
 import {
   Card,
@@ -100,7 +101,7 @@ const sampleOwnershipRecords = [
     type: "developer",
   },
 ];
-export function TransparencyPage() {
+export default function TransparencyPage() {
   return (
     <div className="px-4 py-12">
       <motion.div
