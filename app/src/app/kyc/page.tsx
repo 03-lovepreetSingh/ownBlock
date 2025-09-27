@@ -14,8 +14,9 @@ import {
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { Tooltip } from "../../components/ui/tooltip";
-import { useUser } from "../../context/user-context";
-import { ComplianceBadge } from "../../components/compliance-badge";
+import { useUser } from "@/hooks/useUser";
+import { ComplianceBadge } from "@/components/compliance-badge";
+import { useUserKYC, useCreateKYC } from "@/hooks/useKYC";
 import Link from "next/link";
 // Required document types for KYC
 const requiredDocuments = [
@@ -49,33 +50,254 @@ const requiredDocuments = [
   },
 ];
 export default function KycPage() {
-  const { user, completeKyc, isWhitelisted } = useUser();
+  const { user, isWhitelisted } = useUser();
   const [isVerifying, setIsVerifying] = useState(false);
-  const [isVerified, setIsVerified] = useState(false);
   const [activeStep, setActiveStep] = useState(1);
   const [documents, setDocuments] = useState(requiredDocuments);
   const [uploadProgress, setUploadProgress] = useState({});
   const router = useRouter();
+  
+  // Fetch user's KYC status
+  const { data: kycRecord, isLoading: kycLoading } = useUserKYC();
+  
+  // Create KYC mutation
+  const createKYC = useCreateKYC();
+  
+  // Handle different KYC states
+  if (kycLoading) {
+    return (
+      <div className="px-4 py-16 flex flex-col items-center justify-center text-center">
+        <Card className="max-w-md w-full">
+          <CardHeader>
+            <CardTitle>Loading KYC Status</CardTitle>
+            <CardDescription>
+              Please wait while we check your verification status...
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+  
+  // If KYC is already approved, show success message
+  if (kycRecord?.status === 'approved') {
+    return (
+      <div className="px-4 py-16 flex flex-col items-center justify-center text-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="mb-8"
+        >
+          <div className="rounded-full bg-green-100 dark:bg-green-900/30 p-3 w-16 h-16 mx-auto flex items-center justify-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-green-600 dark:text-green-400 h-8 w-8"
+            >
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+        </motion.div>
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="text-2xl font-bold mb-2"
+        >
+          KYC Verification Complete
+        </motion.h2>
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="text-muted-foreground mb-8"
+        >
+          Your identity has been verified. You can now invest in tokenized
+          properties.
+        </motion.p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="flex gap-4"
+        >
+          <Button onClick={() => router.push("/marketplace")}>
+            Browse Marketplace
+          </Button>
+          <Button variant="outline" onClick={() => router.push("/dashboard")}>
+            Go to Dashboard
+          </Button>
+        </motion.div>
+      </div>
+    );
+  }
+  
+  // If KYC is pending, show pending status
+  if (kycRecord?.status === 'pending') {
+    return (
+      <div className="px-4 py-16 flex flex-col items-center justify-center text-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="mb-8"
+        >
+          <div className="rounded-full bg-yellow-100 dark:bg-yellow-900/30 p-3 w-16 h-16 mx-auto flex items-center justify-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-yellow-600 dark:text-yellow-400 h-8 w-8"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </div>
+        </motion.div>
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="text-2xl font-bold mb-2"
+        >
+          KYC Verification Pending
+        </motion.h2>
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="text-muted-foreground mb-8 max-w-md"
+        >
+          Your KYC application has been submitted and is currently under review. 
+          This typically takes 1-24 hours to complete.
+        </motion.p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="flex gap-4"
+        >
+          <Button onClick={() => router.push("/dashboard")}>
+            Go to Dashboard
+          </Button>
+          <Button variant="outline" onClick={() => router.push("/marketplace")}>
+            Browse Marketplace
+          </Button>
+        </motion.div>
+      </div>
+    );
+  }
+  
+  // If KYC was rejected, show rejection message with retry option
+  if (kycRecord?.status === 'rejected') {
+    return (
+      <div className="px-4 py-16 flex flex-col items-center justify-center text-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="mb-8"
+        >
+          <div className="rounded-full bg-red-100 dark:bg-red-900/30 p-3 w-16 h-16 mx-auto flex items-center justify-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-red-600 dark:text-red-400 h-8 w-8"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="15" y1="9" x2="9" y2="15"></line>
+              <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>
+          </div>
+        </motion.div>
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="text-2xl font-bold mb-2"
+        >
+          KYC Verification Failed
+        </motion.h2>
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="text-muted-foreground mb-8 max-w-md"
+        >
+          {kycRecord.rejection_reason || "Your KYC application was rejected. Please review the requirements and try again."}
+        </motion.p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="flex gap-4"
+        >
+          <Button onClick={() => router.push("/dashboard")}>
+            Go to Dashboard
+          </Button>
+          <Button variant="outline" onClick={() => router.push("/kyc")}>
+            Retry KYC
+          </Button>
+        </motion.div>
+      </div>
+    );
+  }
   const handleVerify = () => {
     setIsVerifying(true);
+    setActiveStep(2); // Move to submission step
+    
     // Simulate verification process with stages
     setTimeout(() => {
-      setActiveStep(2);
-      // Simulate document processing
-      setTimeout(() => {
-        setActiveStep(3);
-        // Simulate verification completion
-        setTimeout(() => {
-          setIsVerifying(false);
-          setIsVerified(true);
-          completeKyc();
-          // Redirect after a short delay
-          setTimeout(() => {
-            router.push("/marketplace");
-          }, 3000);
-        }, 2000);
-      }, 2000);
-    }, 1500);
+      // Create KYC record in the database
+      createKYC.mutate(
+        {
+          user_id: user.id,
+          status: 'pending',
+          // In a real implementation, you would include document URLs here
+          document_urls: {},
+        },
+        {
+          onSuccess: () => {
+            // Redirect to pending status page
+            router.push('/kyc');
+          },
+          onError: (error) => {
+            console.error('Failed to create KYC record:', error);
+            alert('Failed to submit KYC application. Please try again.');
+            setIsVerifying(false);
+            setActiveStep(1); // Go back to document upload step
+          }
+        }
+      );
+    }, 2000);
   };
   const handleFileUpload = (docId) => {
     // Simulate file upload with progress
@@ -291,10 +513,10 @@ export default function KycPage() {
                 }`}
               >
                 {step === 1
-                  ? "Document Upload"
+                  ? "Upload documents"
                   : step === 2
-                  ? "Verification"
-                  : "Completion"}
+                  ? "Processing"
+                  : "Submitted"}
               </span>
             </div>
           ))}
@@ -573,38 +795,16 @@ export default function KycPage() {
               </div>
             )}
 
-            {/* Verification complete */}
-            {activeStep === 3 && (
+            {/* Verification in progress */}
+            {activeStep === 2 && (
               <div className="py-8 flex flex-col items-center">
-                <div className="rounded-full bg-green-100 dark:bg-green-900/30 p-3 w-12 h-12 flex items-center justify-center mb-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="text-green-600 dark:text-green-400"
-                  >
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                  </svg>
-                </div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
                 <h3 className="text-lg font-medium mb-2">
-                  Verification Complete!
+                  Submitting your application...
                 </h3>
-                <p className="text-sm text-muted-foreground text-center max-w-md mb-6">
-                  Your identity has been successfully verified. You can now
-                  invest in tokenized properties on our platform.
-                </p>
-                <div className="flex items-center justify-center p-3 bg-green-50 dark:bg-green-900/10 rounded-md">
-                  <ComplianceBadge type="kyc" status="active" />
-                </div>
-                <p className="text-sm text-muted-foreground mt-6">
-                  Redirecting to marketplace...
+                <p className="text-sm text-muted-foreground text-center max-w-md">
+                  We're processing your documents and creating your KYC application.
+                  This will take just a moment.
                 </p>
               </div>
             )}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, use } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -20,222 +20,108 @@ import { AssetPassport } from "../../../components/asset-passport";
 import { EcosystemIntegration } from "../../../components/ecosystem-integration";
 import { TokenMarketData } from "../../../components/token-market-data";
 import { useUser } from "../../../context/user-context";
-// Sample property data
-const properties = {
-  "1": {
-    id: "1",
-    title: "Luxury Apartment Complex",
-    location: "Miami, FL",
-    valuation: "$12,500,000",
-    tokenStatus: "Active",
-    fundingProgress: 68,
-    tokenPrice: "$500",
-    totalTokens: "25,000",
-    availableTokens: "8,000",
-    minInvestment: "5 tokens ($2,500)",
-    description:
-      "Modern luxury apartment complex in the heart of Miami featuring premium amenities, including rooftop pool, fitness center, and concierge services. Located in a prime neighborhood with high rental demand.",
-    features: [
-      "Built in 2019",
-      "120 residential units",
-      "5,000 sq ft of retail space",
-      "Parking garage with 150 spaces",
-      "Rooftop amenities",
-      "24/7 security",
-    ],
-    financials: {
-      projectedAnnualReturn: "8.5%",
-      dividendFrequency: "Quarterly",
-      managementFee: "1.5%",
-      occupancyRate: "94%",
-    },
-    image:
-      "https://images.unsplash.com/photo-1460317442991-0ec209397118?q=80&w=800&auto=format&fit=crop",
-    images: [
-      "https://images.unsplash.com/photo-1460317442991-0ec209397118?q=80&w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=800&auto=format&fit=crop",
-    ],
-  },
-  "2": {
-    id: "2",
-    title: "Commercial Office Building",
-    location: "New York, NY",
-    valuation: "$28,750,000",
-    tokenStatus: "Active",
-    fundingProgress: 42,
-    tokenPrice: "$1,150",
-    totalTokens: "25,000",
-    availableTokens: "14,500",
-    minInvestment: "2 tokens ($2,300)",
-    description:
-      "Prime commercial office building in Manhattan's financial district. Recently renovated with modern amenities and infrastructure. Fully leased to AAA tenants with long-term contracts.",
-    features: [
-      "Built in 2005, renovated in 2021",
-      "18 floors",
-      "120,000 sq ft of leasable space",
-      "LEED Gold certified",
-      "Underground parking",
-      "Conference center",
-    ],
-    financials: {
-      projectedAnnualReturn: "7.2%",
-      dividendFrequency: "Quarterly",
-      managementFee: "1.2%",
-      occupancyRate: "97%",
-    },
-    image:
-      "https://images.unsplash.com/photo-1554435493-93422e8d1a41?q=80&w=800&auto=format&fit=crop",
-    images: [
-      "https://images.unsplash.com/photo-1554435493-93422e8d1a41?q=80&w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1497215842964-222b430dc094?q=80&w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1497366811353-6870744d04b2?q=80&w=800&auto=format&fit=crop",
-    ],
-  },
-};
-// Sample document data
-const sampleDocuments = [
-  {
-    name: "Property Deed",
-    type: "Legal Document",
-    hash: "QmZ4tDuvesekSs4qM5ZBKpXiZGun7S2CYtEZRB3DYXkjGx",
-    verified: true,
-    verifier: "LegalVerify Inc.",
-    date: "2023-04-15",
-  },
-  {
-    name: "Title Insurance",
-    type: "Insurance",
-    hash: "QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG",
-    verified: true,
-    verifier: "TitleGuard Services",
-    date: "2023-04-18",
-  },
-  {
-    name: "Valuation Report",
-    type: "Financial Document",
-    hash: "QmT8B9Mz5A5C3hVLXCGNwsamBYRFjLQSCfFkzRSK5MULkZ",
-    verified: true,
-    verifier: "ValueAssess Partners",
-    date: "2023-03-30",
-  },
-  {
-    name: "Tokenization Agreement",
-    type: "Legal Document",
-    hash: "QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn",
-    verified: true,
-    verifier: "BlockChainLegal LLC",
-    date: "2023-05-02",
-  },
-];
-// Sample attestation data
-const sampleAttestations = [
-  {
-    name: "Property Valuation",
-    issuer: "ValueAssess Partners",
-    did: "did:ethr:0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db",
-    date: "2023-03-30",
-    status: "valid",
-  },
-  {
-    name: "Legal Compliance",
-    issuer: "BlockChainLegal LLC",
-    did: "did:ethr:0x78731D3Ca6b7E34aC0F824c42a7cC18A495cabaB",
-    date: "2023-05-02",
-    status: "valid",
-  },
-  {
-    name: "Insurance Coverage",
-    issuer: "InsureDAO",
-    did: "did:celo:0x617F2E2fD72FD9D5503197092aC168c91465E7f2",
-    date: "2023-04-25",
-    status: "valid",
-  },
-];
-// Sample ownership data
-const sampleOwnershipRecords = [
-  {
-    address: "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
-    tokens: 5000,
-    percentage: 20,
-    date: "2023-05-10",
-    type: "institutional",
-  },
-  {
-    address: "0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
-    tokens: 2500,
-    percentage: 10,
-    date: "2023-05-12",
-    type: "retail",
-  },
-  {
-    address: "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
-    tokens: 1500,
-    percentage: 6,
-    date: "2023-05-15",
-    type: "retail",
-  },
-  {
-    address: "0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
-    tokens: 1000,
-    percentage: 4,
-    date: "2023-05-18",
-    type: "developer",
-  },
-];
-export default function PropertyPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+import { useProperty } from "../../../hooks/useProperties";
+import { useCreateInvestment } from "../../../hooks/useInvestments";
+import { usePropertyDocuments, usePropertyAttestations, usePropertyOwnership } from "../../../hooks/useAssetData";
+// Property data will be loaded from API
+export default function PropertyPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const { user, isWhitelisted } = useUser();
-  const [property, setProperty] = useState(null);
   const [activeImage, setActiveImage] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
   const [purchaseAmount, setPurchaseAmount] = useState(5);
-  useEffect(() => {
-    // Simulate API call to fetch property data
-    setProperty(properties[id]);
-  }, [id]);
+  
+  const { data: property, isLoading, error } = useProperty(id);
+  const createInvestment = useCreateInvestment();
+  
+  // Fetch asset data
+  const { data: documents = [] } = usePropertyDocuments(id);
+  const { data: attestations = [] } = usePropertyAttestations(id);
+  const { data: ownershipRecords = [] } = usePropertyOwnership(id);
   const handlePurchase = () => {
-    setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      alert(
-        `Successfully purchased ${purchaseAmount} tokens for $${(
-          purchaseAmount * 500
-        ).toLocaleString()}`
-      );
-    }, 1500);
+    if (!user || !property) return;
+    
+    createInvestment.mutate(
+      {
+        property_id: property.id,
+        user_id: user.id,
+        amount: purchaseAmount,
+        tokens_purchased: purchaseAmount,
+        status: 'pending'
+      },
+      {
+        onSuccess: () => {
+          alert(`Investment of ${purchaseAmount} tokens submitted successfully!`);
+        },
+        onError: (error) => {
+          alert(`Investment failed: ${error.message}`);
+        }
+      }
+    );
   };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <h2 className="text-2xl font-bold mb-2">Loading Property</h2>
+          <p className="text-muted-foreground">Please wait while we fetch the property details.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Error Loading Property</h2>
+          <p className="text-muted-foreground mb-4">{error.message}</p>
+          <Button onClick={() => window.location.reload()}>Retry</Button>
+        </div>
+      </div>
+    );
+  }
+
   if (!property) {
     return (
-      <div className="px-4 py-16 flex flex-col items-center justify-center">
-        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-        <p className="mt-4 text-muted-foreground">
-          Loading property details...
-        </p>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Property Not Found</h2>
+          <p className="text-muted-foreground">The property you're looking for doesn't exist.</p>
+        </div>
       </div>
     );
   }
   const getBuyButtonState = () => {
-    if (!user) {
+    if (createInvestment.isPending) {
       return {
-        text: "Connect Wallet to Buy",
+        text: "Processing...",
         disabled: true,
-        variant: "outline" as const,
-      };
-    } else if (!isWhitelisted()) {
-      return {
-        text: "KYC Required",
-        disabled: true,
-        variant: "outline" as const,
-      };
-    } else {
-      return {
-        text: `Buy with cUSD ($${(purchaseAmount * 500).toLocaleString()})`,
-        disabled: false,
         variant: "default" as const,
       };
     }
+    
+    if (!user) {
+      return {
+        text: "Connect Wallet to Invest",
+        disabled: true,
+        variant: "secondary" as const,
+      };
+    }
+    
+    if (!isWhitelisted()) {
+      return {
+        text: "Complete KYC to Invest",
+        disabled: true,
+        variant: "secondary" as const,
+      };
+    }
+    
+    return {
+      text: `Buy ${purchaseAmount} Tokens`,
+      disabled: false,
+      variant: "default" as const,
+    };
   };
   const buyButtonState = getBuyButtonState();
   const propertyTabs = [
@@ -246,12 +132,12 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
         <div className="space-y-6">
           <div>
             <h3 className="text-lg font-semibold mb-2">Property Description</h3>
-            <p className="text-muted-foreground">{property.description}</p>
+            <p className="text-muted-foreground">{property.description || 'No description available for this property.'}</p>
           </div>
           <div>
             <h3 className="text-lg font-semibold mb-2">Features</h3>
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {property.features.map((feature, index) => (
+              {property.features?.length > 0 ? property.features.map((feature, index) => (
                 <li key={index} className="flex items-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -269,7 +155,9 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
                   </svg>
                   <span>{feature}</span>
                 </li>
-              ))}
+              )) : (
+                <li className="text-muted-foreground col-span-2">No features listed for this property.</li>
+              )}
             </ul>
           </div>
           <div>
@@ -280,7 +168,7 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
                   Projected Annual Return
                 </p>
                 <p className="text-xl font-semibold text-primary">
-                  {property.financials.projectedAnnualReturn}
+                  {property.expected_return}%
                 </p>
               </div>
               <div className="p-4 bg-muted/30 rounded-lg">
@@ -288,19 +176,19 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
                   Dividend Frequency
                 </p>
                 <p className="text-xl font-semibold">
-                  {property.financials.dividendFrequency}
+                  {property.dividend_frequency || 'Quarterly'}
                 </p>
               </div>
               <div className="p-4 bg-muted/30 rounded-lg">
                 <p className="text-sm text-muted-foreground">Management Fee</p>
                 <p className="text-xl font-semibold">
-                  {property.financials.managementFee}
+                  {property.management_fee || '2%'}
                 </p>
               </div>
               <div className="p-4 bg-muted/30 rounded-lg">
                 <p className="text-sm text-muted-foreground">Occupancy Rate</p>
                 <p className="text-xl font-semibold">
-                  {property.financials.occupancyRate}
+                  {property.occupancy_rate || '95%'}
                 </p>
               </div>
             </div>
@@ -325,7 +213,7 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
                     <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
                     <circle cx="12" cy="10" r="3"></circle>
                   </svg>
-                  <p className="text-muted-foreground">{property.location}</p>
+                  <p className="text-muted-foreground">{property.address}</p>
                 </div>
               </div>
             </div>
@@ -372,19 +260,19 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
               </div>
             </div>
           </div>
-          <TokenMarketData />
+          <TokenMarketData propertyId={property.id} />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <h3 className="text-lg font-semibold mb-3">Token Details</h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Token Price</span>
-                  <span className="font-medium">{property.tokenPrice}</span>
+                  <span className="font-medium">${property.token_price?.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Total Supply</span>
                   <span className="font-medium">
-                    {property.totalTokens} tokens
+                    {property.total_tokens} tokens
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -392,14 +280,14 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
                     Available Tokens
                   </span>
                   <span className="font-medium">
-                    {property.availableTokens} tokens
+                    {property.total_tokens - property.tokens_sold} tokens
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">
                     Minimum Investment
                   </span>
-                  <span className="font-medium">{property.minInvestment}</span>
+                  <span className="font-medium">${property.min_investment?.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Token Standard</span>
@@ -412,7 +300,7 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
               <div className="space-y-3">
                 <div className="flex justify-between text-sm mb-1">
                   <span>Total Raised</span>
-                  <span>{property.fundingProgress}%</span>
+                  <span>{Math.round((property.tokens_sold / property.total_tokens) * 100)}%</span>
                 </div>
                 <div className="w-full bg-muted rounded-full h-2.5">
                   <motion.div
@@ -421,7 +309,7 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
                       width: 0,
                     }}
                     animate={{
-                      width: `${property.fundingProgress}%`,
+                      width: `${(property.tokens_sold / property.total_tokens) * 100}%`,
                     }}
                     transition={{
                       duration: 1,
@@ -433,12 +321,12 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
                   <span>
                     $
                     {(
-                      (property.fundingProgress / 100) *
-                      parseInt(property.valuation.replace(/[^0-9]/g, ""))
+                      (property.tokens_sold / property.total_tokens) *
+                      property.valuation
                     ).toLocaleString()}{" "}
                     raised
                   </span>
-                  <span>Goal: {property.valuation}</span>
+                  <span>Goal: ${property.valuation?.toLocaleString()}</span>
                 </div>
               </div>
               <div className="mt-6">
@@ -465,7 +353,7 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
                 <Button
                   className="w-full"
                   variant={buyButtonState.variant}
-                  disabled={buyButtonState.disabled || isLoading}
+                  disabled={buyButtonState.disabled || createInvestment.isPending}
                   onClick={handlePurchase}
                 >
                   {isLoading ? (
@@ -521,9 +409,9 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
       content: (
         <AssetPassport
           propertyId={property.id}
-          documents={sampleDocuments}
-          attestations={sampleAttestations}
-          ownershipRecords={sampleOwnershipRecords}
+          documents={documents}
+          attestations={attestations}
+          ownershipRecords={ownershipRecords}
         />
       ),
     },
@@ -554,8 +442,8 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
             <AnimatePresence mode="wait">
               <motion.img
                 key={activeImage}
-                src={property.images[activeImage]}
-                alt={property.title}
+                src={property.image_url}
+                alt={property.name}
                 className="w-full h-full object-cover"
                 initial={{
                   opacity: 0,
@@ -573,19 +461,18 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
             </AnimatePresence>
             <div className="absolute top-4 left-4 flex flex-col gap-2">
               <Badge variant="success" animated>
-                {property.tokenStatus}
+                {property.status}
               </Badge>
               <ComplianceBadge type="erc3643" />
             </div>
           </motion.div>
           <div className="flex gap-2 mb-6">
-            {property.images.map((image, index) => (
+            {property.image_url && (
               <motion.div
-                key={index}
                 className={`cursor-pointer w-20 h-20 rounded-md overflow-hidden ${
-                  activeImage === index ? "ring-2 ring-primary" : ""
+                  activeImage === 0 ? "ring-2 ring-primary" : ""
                 }`}
-                onClick={() => setActiveImage(index)}
+                onClick={() => setActiveImage(0)}
                 whileHover={{
                   scale: 1.05,
                 }}
@@ -599,16 +486,16 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
                 }}
                 transition={{
                   duration: 0.5,
-                  delay: 0.1 * index,
+                  delay: 0.1,
                 }}
               >
                 <img
-                  src={image}
-                  alt={`${property.title} ${index + 1}`}
+                  src={property.image_url}
+                  alt={`${property.name}`}
                   className="w-full h-full object-cover"
                 />
               </motion.div>
-            ))}
+            )}
           </div>
           <motion.div
             initial={{
@@ -646,27 +533,27 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-2xl">{property.title}</CardTitle>
-                    <CardDescription className="flex items-center mt-1">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="mr-1"
-                      >
-                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
-                        <circle cx="12" cy="10" r="3"></circle>
-                      </svg>
-                      {property.location}
-                    </CardDescription>
+                    <CardTitle className="text-2xl">{property.name}</CardTitle>
+                <CardDescription className="flex items-center mt-1">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="mr-1"
+                  >
+                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                  {property.address}
+                </CardDescription>
                   </div>
-                  <Badge variant="outline">{property.valuation}</Badge>
+                  <Badge variant="outline">${property.valuation?.toLocaleString()}</Badge>
                 </div>
               </CardHeader>
               <CardContent>
@@ -680,14 +567,14 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
                         <p className="text-sm text-muted-foreground">
                           Token Price
                         </p>
-                        <p className="font-semibold">{property.tokenPrice}</p>
+                        <p className="font-semibold">${property.token_price?.toLocaleString()}</p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">
                           Available Tokens
                         </p>
                         <p className="font-semibold">
-                          {property.availableTokens}
+                          {property.total_tokens - property.tokens_sold}
                         </p>
                       </div>
                       <div>
@@ -695,7 +582,7 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
                           Min Investment
                         </p>
                         <p className="font-semibold">
-                          {property.minInvestment}
+                          ${property.min_investment?.toLocaleString()}
                         </p>
                       </div>
                       <div>
@@ -703,7 +590,7 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
                           Expected Return
                         </p>
                         <p className="font-semibold">
-                          {property.financials.projectedAnnualReturn}
+                          {property.expected_return}%
                         </p>
                       </div>
                     </div>
@@ -711,7 +598,7 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
                   <div>
                     <div className="flex justify-between text-sm mb-1">
                       <span>Funding Progress</span>
-                      <span>{property.fundingProgress}%</span>
+                      <span>{Math.round((property.tokens_sold / property.total_tokens) * 100)}%</span>
                     </div>
                     <div className="w-full bg-muted rounded-full h-2">
                       <motion.div
@@ -720,7 +607,7 @@ export default function PropertyPage({ params }: { params: { id: string } }) {
                           width: 0,
                         }}
                         animate={{
-                          width: `${property.fundingProgress}%`,
+                          width: `${(property.tokens_sold / property.total_tokens) * 100}%`,
                         }}
                         transition={{
                           duration: 1,

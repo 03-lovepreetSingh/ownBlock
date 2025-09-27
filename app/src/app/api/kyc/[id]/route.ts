@@ -13,12 +13,12 @@ const updateKycSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAdmin();
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const validatedData = updateKycSchema.parse(body);
 
@@ -42,7 +42,6 @@ export async function PATCH(
         status: validatedData.status,
         rejectionReason: validatedData.rejectionReason || null,
         verifiedAt: validatedData.status === "verified" ? new Date() : null,
-        updatedAt: new Date(),
       })
       .where(eq(kycRecords.id, id))
       .returning();
@@ -53,7 +52,7 @@ export async function PATCH(
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        errorResponse("Validation error", error.errors),
+        errorResponse("Validation error", error.issues),
         { status: 400 }
       );
     }

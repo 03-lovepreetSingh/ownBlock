@@ -1,24 +1,46 @@
 import React, { useState } from "react";
 import { Button } from "./ui/button";
 import { motion } from "framer-motion";
-export function TokenMarketData() {
+import { useTokenMarketData } from "../hooks/useTokenMarketData";
+
+interface TokenMarketDataProps {
+  propertyId: string;
+}
+
+export function TokenMarketData({ propertyId }: TokenMarketDataProps) {
   const [timeframe, setTimeframe] = useState("7D");
   const [tokenAmount, setTokenAmount] = useState(1);
+  const { data: marketData, isLoading } = useTokenMarketData(propertyId);
+
   const handleIncrement = () => {
     setTokenAmount((prev) => prev + 1);
   };
+
   const handleDecrement = () => {
     if (tokenAmount > 1) {
       setTokenAmount((prev) => prev - 1);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-card border rounded-lg p-5">
+          <div className="animate-pulse">
+            <div className="h-8 bg-muted rounded w-24 mb-2"></div>
+            <div className="h-4 bg-muted rounded w-16"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="space-y-6">
       <div className="bg-card border rounded-lg p-5">
         <div className="flex justify-between items-center mb-4">
           <div>
-            <span className="text-3xl font-bold">$500</span>
-            <span className="text-green-500 ml-2">+2.4%</span>
+            <span className="text-3xl font-bold">${marketData?.tokenPrice?.toLocaleString()}</span>
+            <span className="text-green-500 ml-2">+{marketData?.priceChange24h}%</span>
             <div className="text-xs text-muted-foreground">per token</div>
           </div>
           <div className="flex space-x-2">
@@ -94,19 +116,19 @@ export function TokenMarketData() {
       <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
         <div className="bg-card border rounded-lg p-4">
           <div className="text-sm text-muted-foreground">Market Cap</div>
-          <div className="font-bold">$8,500,000</div>
+          <div className="font-bold">${marketData?.marketCap?.toLocaleString()}</div>
         </div>
         <div className="bg-card border rounded-lg p-4">
           <div className="text-sm text-muted-foreground">24h Volume</div>
-          <div className="font-bold">$125,000</div>
+          <div className="font-bold">${marketData?.volume24h?.toLocaleString()}</div>
         </div>
         <div className="bg-card border rounded-lg p-4">
           <div className="text-sm text-muted-foreground">Total Supply</div>
-          <div className="font-bold">25,000</div>
+          <div className="font-bold">{marketData?.totalSupply?.toLocaleString()}</div>
         </div>
         <div className="bg-card border rounded-lg p-4">
           <div className="text-sm text-muted-foreground">Holders</div>
-          <div className="font-bold">83</div>
+          <div className="font-bold">{marketData?.holders?.toLocaleString()}</div>
         </div>
         <div className="bg-card border rounded-lg p-4">
           <div className="text-sm text-muted-foreground">Funding</div>
@@ -118,14 +140,14 @@ export function TokenMarketData() {
                   width: 0,
                 }}
                 animate={{
-                  width: "68%",
+                  width: `${marketData?.fundingProgress}%`,
                 }}
                 transition={{
                   duration: 1,
                 }}
               />
             </div>
-            <span className="font-bold">68%</span>
+            <span className="font-bold">{marketData?.fundingProgress}%</span>
           </div>
         </div>
       </div>

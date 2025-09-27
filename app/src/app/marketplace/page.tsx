@@ -13,94 +13,114 @@ import {
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { useUser } from "../../context/user-context";
-// Sample property data
-const properties = [
-  {
-    id: "1",
-    title: "Luxury Apartment Complex",
-    location: "Miami, FL",
-    valuation: "$12,500,000",
-    tokenStatus: "Active",
-    fundingProgress: 68,
-    image:
-      "https://images.unsplash.com/photo-1460317442991-0ec209397118?q=80&w=800&auto=format&fit=crop",
-  },
-  {
-    id: "2",
-    title: "Commercial Office Building",
-    location: "New York, NY",
-    valuation: "$28,750,000",
-    tokenStatus: "Active",
-    fundingProgress: 42,
-    image:
-      "https://images.unsplash.com/photo-1554435493-93422e8d1a41?q=80&w=800&auto=format&fit=crop",
-  },
-  {
-    id: "3",
-    title: "Residential Development",
-    location: "Austin, TX",
-    valuation: "$8,200,000",
-    tokenStatus: "Coming Soon",
-    fundingProgress: 0,
-    image:
-      "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?q=80&w=800&auto=format&fit=crop",
-  },
-  {
-    id: "4",
-    title: "Retail Shopping Center",
-    location: "Chicago, IL",
-    valuation: "$15,800,000",
-    tokenStatus: "Active",
-    fundingProgress: 87,
-    image:
-      "https://images.unsplash.com/photo-1555636222-cae831e670b3?q=80&w=800&auto=format&fit=crop",
-  },
-  {
-    id: "5",
-    title: "Industrial Warehouse",
-    location: "Seattle, WA",
-    valuation: "$6,400,000",
-    tokenStatus: "Active",
-    fundingProgress: 24,
-    image:
-      "https://images.unsplash.com/photo-1565953554309-d181306db7d5?q=80&w=800&auto=format&fit=crop",
-  },
-  {
-    id: "6",
-    title: "Beachfront Hotel",
-    location: "San Diego, CA",
-    valuation: "$32,100,000",
-    tokenStatus: "Coming Soon",
-    fundingProgress: 0,
-    image:
-      "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=800&auto=format&fit=crop",
-  },
-];
+import { useProperties } from "../../hooks/useProperties";
+// Real property data will be loaded from API
 export default function MarketplacePage() {
   const { user, isWhitelisted } = useUser();
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
+
+  // Fetch real properties from API
+  const { data: properties = [], isLoading, error } = useProperties();
+
   // Filter properties based on multiple criteria
   const filteredProperties = properties
     .filter(
-      (p) =>
-        filter === "all" || p.tokenStatus.toLowerCase() === filter.toLowerCase()
+      (p) => filter === "all" || p.status.toLowerCase() === filter.toLowerCase()
     )
     .filter(
-      (p) => locationFilter === "all" || p.location.includes(locationFilter)
+      (p) => locationFilter === "all" || p.address.includes(locationFilter)
     )
     .filter(
       (p) =>
         searchQuery === "" ||
         p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.location.toLowerCase().includes(searchQuery.toLowerCase())
+        (typeof p.address === "string"
+          ? p.address.toLowerCase().includes(searchQuery.toLowerCase())
+          : p.location.toLowerCase().includes(searchQuery.toLowerCase()))
     );
+
   // Get unique locations for the filter
   const locations = [
     "all",
-    ...new Set(properties.map((p) => p.location.split(",")[0].trim())),
+    ...new Set(
+      properties.map((p) => {
+        // Handle both string and object address formats
+        if (typeof p.address === "string") {
+          return p.address.split(",")[0].trim();
+        } else if (p.address && typeof p.address === "object") {
+          return p.address.city || p.location || "Unknown";
+        }
+        return p.location || "Unknown";
+      })
+    ),
   ];
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="w-full bg-background">
+        <div className="px-4 py-12 md:py-16">
+          <div className="flex flex-col items-center space-y-4 text-center mb-12">
+            <motion.h1
+              className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              Property Marketplace
+            </motion.h1>
+            <motion.p
+              className="max-w-[700px] text-muted-foreground md:text-xl"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              Discover tokenized properties available for investment
+            </motion.p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, index) => (
+              <PropertyCardSkeleton key={index} />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="w-full bg-background">
+        <div className="px-4 py-12 md:py-16">
+          <div className="flex flex-col items-center space-y-4 text-center mb-12">
+            <motion.h1
+              className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              Property Marketplace
+            </motion.h1>
+            <motion.p
+              className="max-w-[700px] text-muted-foreground md:text-xl"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              Discover tokenized properties available for investment
+            </motion.p>
+          </div>
+          <div className="text-center py-12">
+            <p className="text-red-500 mb-4">Failed to load properties</p>
+            <Button onClick={() => window.location.reload()}>Retry</Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full bg-background">
       <div className="px-4 py-12 md:py-16">
@@ -302,6 +322,12 @@ export default function MarketplacePage() {
   );
 }
 function PropertyCard({ property, index, isWhitelisted, user }) {
+  // Calculate funding progress based on tokens sold vs total tokens
+  const fundingProgress =
+    property.tokens_sold && property.total_tokens
+      ? Math.round((property.tokens_sold / property.total_tokens) * 100)
+      : 0;
+
   return (
     <motion.div
       initial={{
@@ -324,43 +350,52 @@ function PropertyCard({ property, index, isWhitelisted, user }) {
         <Card className="h-full overflow-hidden hover:shadow-md transition-all">
           <div className="relative overflow-hidden rounded-t-lg h-48">
             <img
-              src={property.image}
+              src={
+                property.image_url ||
+                "https://images.unsplash.com/photo-1460317442991-0ec209397118?q=80&w=800&auto=format&fit=crop"
+              }
               alt={property.title}
               className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
             />
             <div className="absolute top-2 right-2">
               <Badge
-                variant={
-                  property.tokenStatus === "Active" ? "success" : "secondary"
-                }
+                variant={property.status === "active" ? "success" : "secondary"}
               >
-                {property.tokenStatus}
+                {property.status === "active" ? "Active" : "Coming Soon"}
               </Badge>
             </div>
           </div>
           <CardHeader>
             <CardTitle>{property.title}</CardTitle>
-            <CardDescription>{property.location}</CardDescription>
+            <CardDescription>
+              {typeof property.address === "string"
+                ? property.address
+                : property.address
+                ? `${property.address.street}, ${property.address.city}, ${property.address.state}`
+                : property.location}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex justify-between mb-4">
               <div>
                 <p className="text-sm text-muted-foreground">Valuation</p>
-                <p className="font-semibold">{property.valuation}</p>
+                <p className="font-semibold">
+                  ${property.valuation.toLocaleString()}
+                </p>
               </div>
-              {property.fundingProgress > 0 && (
+              {fundingProgress > 0 && (
                 <div>
                   <p className="text-sm text-muted-foreground">Funding</p>
-                  <p className="font-semibold">{property.fundingProgress}%</p>
+                  <p className="font-semibold">{fundingProgress}%</p>
                 </div>
               )}
             </div>
-            {property.fundingProgress > 0 && (
+            {fundingProgress > 0 && (
               <div className="w-full bg-muted rounded-full h-2 mb-4">
                 <div
                   className="bg-primary h-2 rounded-full"
                   style={{
-                    width: `${property.fundingProgress}%`,
+                    width: `${fundingProgress}%`,
                   }}
                 ></div>
               </div>
@@ -390,5 +425,33 @@ function PropertyCard({ property, index, isWhitelisted, user }) {
         </Card>
       </Link>
     </motion.div>
+  );
+}
+
+function PropertyCardSkeleton() {
+  return (
+    <Card className="h-full overflow-hidden">
+      <div className="relative overflow-hidden rounded-t-lg h-48 bg-muted animate-pulse"></div>
+      <CardHeader>
+        <div className="h-6 bg-muted rounded animate-pulse mb-2"></div>
+        <div className="h-4 bg-muted rounded animate-pulse"></div>
+      </CardHeader>
+      <CardContent>
+        <div className="flex justify-between mb-4">
+          <div>
+            <div className="h-4 bg-muted rounded animate-pulse mb-1"></div>
+            <div className="h-5 bg-muted rounded animate-pulse"></div>
+          </div>
+          <div>
+            <div className="h-4 bg-muted rounded animate-pulse mb-1"></div>
+            <div className="h-5 bg-muted rounded animate-pulse"></div>
+          </div>
+        </div>
+        <div className="w-full bg-muted rounded-full h-2 mb-4"></div>
+      </CardContent>
+      <CardFooter>
+        <div className="w-full h-10 bg-muted rounded animate-pulse"></div>
+      </CardFooter>
+    </Card>
   );
 }

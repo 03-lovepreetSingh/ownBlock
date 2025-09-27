@@ -10,24 +10,48 @@ const protectedRoutes = [
 ];
 
 const adminRoutes = [
-  '/api/properties',
-  '/api/kyc',
-  '/api/dividends',
-  '/api/dividend-payments',
+  { path: '/api/properties', methods: ['POST'] }, // Only POST requires admin
+  { path: '/api/kyc', methods: ['GET', 'POST', 'PUT', 'DELETE'] },
+  { path: '/api/dividends', methods: ['GET', 'POST', 'PUT', 'DELETE'] },
+  { path: '/api/dividend-payments', methods: ['GET', 'POST', 'PUT', 'DELETE'] },
+];
+
+const publicRoutes = [
+  { path: '/api/properties', methods: ['GET'] }, // GET properties is public
+  '/api/properties/', // Individual property endpoints are public
+  '/api/property-tokens/',
 ];
 
 export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request });
   const { pathname } = request.nextUrl;
+  const method = request.method;
+  
+  // Check if route is public
+  const isPublicRoute = publicRoutes.some(route => {
+    if (typeof route === 'string') {
+      return pathname.startsWith(route);
+    }
+    return pathname === route.path && route.methods.includes(method);
+  });
+  
+  // Allow public routes without authentication
+  if (isPublicRoute) {
+    return NextResponse.next();
+  }
   
   // Check if route is protected
   const isProtectedRoute = protectedRoutes.some(route => 
     pathname.startsWith(route)
   );
   
-  const isAdminRoute = adminRoutes.some(route => 
-    pathname.startsWith(route)
-  );
+  // Check if route is admin
+  const isAdminRoute = adminRoutes.some(route => {
+    if (typeof route === 'string') {
+      return pathname.startsWith(route);
+    }
+    return pathname.startsWith(route.path) && route.methods.includes(method);
+  });
   
   // Handle protected routes
   if (isProtectedRoute) {
