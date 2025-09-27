@@ -54,7 +54,7 @@ export function Header() {
         <div className="flex items-center gap-6">
           <Logo />
           <div className="md:hidden">
-            <ConnectButton
+            <Button
               variant="ghost"
               size="icon"
               onClick={() => setSidebarOpen((prev) => !prev)}
@@ -75,7 +75,7 @@ export function Header() {
                 <line x1="3" y1="6" x2="21" y2="6"></line>
                 <line x1="3" y1="18" x2="21" y2="18"></line>
               </svg>
-            </ConnectButton>
+            </Button>
           </div>
           <nav className="hidden md:flex gap-6">
             {navItems.map((item) => (
