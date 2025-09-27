@@ -1,12 +1,12 @@
 "use client";
-import React from 'react'
-import { motion } from 'framer-motion'
-import { Button } from '../../components/ui/button'
-import { FormData } from '../../pages/tokenize'
+import React from "react";
+import { motion } from "framer-motion";
+import { Button } from "../../components/ui/button";
+import { FormData } from "../../app/tokenize/page";
 interface DocumentsStepProps {
-  formData: FormData
-  handleFileChange: (docType: string, file: File | null) => void
-  documentTypes: string[]
+  formData: FormData;
+  handleFileChange: (docType: string, file: File | null) => void;
+  documentTypes: string[];
 }
 export function DocumentsStep({
   formData,
@@ -76,8 +76,8 @@ export function DocumentsStep({
                       type="file"
                       className="hidden"
                       onChange={(e) => {
-                        const file = e.target.files?.[0] || null
-                        handleFileChange(docType, file)
+                        const file = e.target.files?.[0] || null;
+                        handleFileChange(docType, file);
                       }}
                       accept=".pdf,.doc,.docx"
                     />
@@ -99,5 +99,5 @@ export function DocumentsStep({
         </p>
       </div>
     </motion.div>
-  )
+  );
 }

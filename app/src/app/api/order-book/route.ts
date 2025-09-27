@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         expiresAt: orderBook.expiresAt,
         property: {
           id: properties.id,
-          name: properties.name,
+          title: properties.title,
         },
       })
       .from(orderBook)
@@ -105,10 +105,10 @@ export async function POST(request: NextRequest) {
       .insert(orderBook)
       .values({
         userId: user.id,
-        ...validatedData,
-        status: "open",
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        propertyTokenId: validatedData.propertyTokenId,
+        type: validatedData.type,
+        price: validatedData.pricePerToken.toString(),
+        tokenAmount: validatedData.tokenAmount,
       })
       .returning();
 
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        errorResponse("Validation error", error.errors),
+        errorResponse("Validation error", error.issues),
         { status: 400 }
       );
     }

@@ -158,21 +158,24 @@ export function ComplianceBadge({
   };
   const badgeContent = (
     <Tooltip content={info.tooltipContent}>
-      <Badge
-        variant={info.variant as any}
-        animated
+      <div
         className="cursor-pointer"
         onClick={handleBadgeClick}
       >
-        <span className="flex items-center">
-          {info.icon}
-          {status === "active"
-            ? info.title
-            : status === "pending"
-            ? `${info.title} Pending`
-            : `${info.title} Required`}
-        </span>
-      </Badge>
+        <Badge
+          variant={info.variant as any}
+          animated
+        >
+          <span className="flex items-center">
+            {info.icon}
+            {status === "active"
+              ? info.title
+              : status === "pending"
+              ? `${info.title} Pending`
+              : `${info.title} Required`}
+          </span>
+        </Badge>
+      </div>
     </Tooltip>
   );
   return (

@@ -14,7 +14,7 @@ import {
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { Tooltip } from "../../components/ui/tooltip";
-import { useUser } from "@/hooks/useUser";
+import { useUser } from "@/context/user-context";
 import { ComplianceBadge } from "@/components/compliance-badge";
 import { useUserKYC, useCreateKYC } from "@/hooks/useKYC";
 import Link from "next/link";
@@ -54,7 +54,8 @@ export default function KycPage() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [activeStep, setActiveStep] = useState(1);
   const [documents, setDocuments] = useState(requiredDocuments);
-  const [uploadProgress, setUploadProgress] = useState({});
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
+  const [isVerified, setIsVerified] = useState(false);
   const router = useRouter();
   
   // Fetch user's KYC status
@@ -252,7 +253,7 @@ export default function KycPage() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="text-muted-foreground mb-8 max-w-md"
         >
-          {kycRecord.rejection_reason || "Your KYC application was rejected. Please review the requirements and try again."}
+          {kycRecord.rejectionReason || "Your KYC application was rejected. Please review the requirements and try again."}
         </motion.p>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -279,10 +280,15 @@ export default function KycPage() {
       // Create KYC record in the database
       createKYC.mutate(
         {
-          user_id: user.id,
-          status: 'pending',
-          // In a real implementation, you would include document URLs here
-          document_urls: {},
+          firstName: "John",
+          lastName: "Doe", 
+          dateOfBirth: "1990-01-01",
+          nationality: "US",
+          idNumber: "123456789",
+          idType: "passport",
+          idDocumentUrl: "https://example.com/id.jpg",
+          proofOfAddressUrl: "https://example.com/address.jpg",
+          selfieUrl: "https://example.com/selfie.jpg",
         },
         {
           onSuccess: () => {
@@ -299,14 +305,14 @@ export default function KycPage() {
       );
     }, 2000);
   };
-  const handleFileUpload = (docId) => {
+  const handleFileUpload = (docId: string) => {
     // Simulate file upload with progress
-    setUploadProgress((prev) => ({
+    setUploadProgress((prev: Record<string, number>) => ({
       ...prev,
       [docId]: 0,
     }));
     const interval = setInterval(() => {
-      setUploadProgress((prev) => {
+      setUploadProgress((prev: Record<string, number>) => {
         const newProgress = (prev[docId] || 0) + 10;
         if (newProgress >= 100) {
           clearInterval(interval);

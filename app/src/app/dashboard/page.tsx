@@ -211,7 +211,7 @@ export default function DashboardPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Account Status</CardDescription>
-              <CardTitle className="text-lg">{user?.email || user?.name || "Connected"}</CardTitle>
+              <CardTitle className="text-lg">{user?.address || "Connected"}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
@@ -346,6 +346,6 @@ export default function DashboardPage() {
     </div>
   );
 }
-const CardFooter = ({ children }) => (
-  <div className="flex items-center p-6 pt-0">{children}</div>
+const CardFooter = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
+  <div className={`flex items-center p-6 pt-0 ${className}`}>{children}</div>
 );

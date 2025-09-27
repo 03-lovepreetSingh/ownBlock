@@ -50,10 +50,15 @@ export async function POST(request: NextRequest) {
       .insert(kycRecords)
       .values({
         userId: user.id,
-        ...validatedData,
-        status: "pending",
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        firstName: validatedData.fullName.split(' ')[0],
+        lastName: validatedData.fullName.split(' ').slice(1).join(' ') || '',
+        dateOfBirth: new Date(validatedData.dateOfBirth),
+        nationality: validatedData.nationality,
+        documentType: validatedData.documentType,
+        documentId: validatedData.documentNumber,
+        documentUrl: validatedData.documentFrontImage,
+        selfieUrl: validatedData.selfieImage,
+        submittedAt: new Date(),
       })
       .returning();
 
@@ -64,7 +69,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        errorResponse("Validation error", error.errors),
+        errorResponse("Validation error", error.issues),
         { status: 400 }
       );
     }

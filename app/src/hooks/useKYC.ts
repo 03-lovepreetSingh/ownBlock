@@ -19,6 +19,7 @@ export interface KYCRecord {
   metadata: Record<string, any>;
   createdAt: string;
   updatedAt: string;
+  rejectionReason?: string;
 }
 
 export interface CreateKYCData {

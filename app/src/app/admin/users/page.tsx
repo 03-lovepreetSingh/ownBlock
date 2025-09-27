@@ -122,7 +122,7 @@ export default function AdminUsers() {
   } else if (filter === "blacklisted") {
     filteredUsers = users.filter((u) => u.blacklisted);
   }
-  const approveKyc = (id) => {
+  const approveKyc = (id: string) => {
     setUsers((prev) =>
       prev.map((u) => {
         if (u.id === id) {
@@ -135,7 +135,7 @@ export default function AdminUsers() {
       })
     );
   };
-  const rejectKyc = (id) => {
+  const rejectKyc = (id: string) => {
     setUsers((prev) =>
       prev.map((u) => {
         if (u.id === id) {
@@ -148,7 +148,7 @@ export default function AdminUsers() {
       })
     );
   };
-  const toggleBlacklist = (id) => {
+  const toggleBlacklist = (id: string) => {
     setUsers((prev) =>
       prev.map((u) => {
         if (u.id === id) {

@@ -9,7 +9,7 @@ import {
   investments,
   propertyTokens,
 } from "../../../db/schema";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { successResponse, errorResponse } from "../../../lib/api-response";
 
 export async function GET(request: NextRequest) {
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const dividendId = searchParams.get("dividendId");
     const userId = searchParams.get("userId");
-    const status = searchParams.get("status"); // 'pending', 'paid', 'failed'
+
     const limit = parseInt(searchParams.get("limit") || "50");
     const offset = parseInt(searchParams.get("offset") || "0");
 
@@ -129,10 +129,9 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        errorResponse("Validation error"),
-        { status: 400 }
-      );
+      return NextResponse.json(errorResponse("Validation error"), {
+        status: 400,
+      });
     }
 
     if (error instanceof Error && error.message === "Forbidden") {

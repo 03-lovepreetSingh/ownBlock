@@ -11,6 +11,23 @@ import {
 import { Badge } from "../../components/ui/badge";
 import { Tooltip } from "../../components/ui/tooltip";
 import { AssetPassport } from "../../components/asset-passport";
+
+interface Attestation {
+  name: string;
+  issuer: string;
+  did: string;
+  date: string;
+  status: "valid" | "expired" | "revoked";
+}
+
+interface OwnershipRecord {
+  address: string;
+  tokens: number;
+  percentage: number;
+  date: string;
+  type: "retail" | "institutional" | "developer";
+}
+
 // Sample document data
 const sampleDocuments = [
   {
@@ -47,58 +64,58 @@ const sampleDocuments = [
   },
 ];
 // Sample attestation data
-const sampleAttestations = [
+const sampleAttestations: Attestation[] = [
   {
     name: "Property Valuation",
     issuer: "ValueAssess Partners",
     did: "did:ethr:0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db",
     date: "2023-03-30",
-    status: "valid",
+    status: "valid" as const,
   },
   {
     name: "Legal Compliance",
     issuer: "BlockChainLegal LLC",
     did: "did:ethr:0x78731D3Ca6b7E34aC0F824c42a7cC18A495cabaB",
     date: "2023-05-02",
-    status: "valid",
+    status: "valid" as const,
   },
   {
     name: "Insurance Coverage",
     issuer: "InsureDAO",
     did: "did:celo:0x617F2E2fD72FD9D5503197092aC168c91465E7f2",
     date: "2023-04-25",
-    status: "valid",
+    status: "valid" as const,
   },
 ];
 // Sample ownership data
-const sampleOwnershipRecords = [
+const sampleOwnershipRecords: OwnershipRecord[] = [
   {
     address: "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
     tokens: 5000,
     percentage: 20,
     date: "2023-05-10",
-    type: "institutional",
+    type: "institutional" as const,
   },
   {
     address: "0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
     tokens: 2500,
     percentage: 10,
     date: "2023-05-12",
-    type: "retail",
+    type: "retail" as const,
   },
   {
     address: "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
     tokens: 1500,
     percentage: 6,
     date: "2023-05-15",
-    type: "retail",
+    type: "retail" as const,
   },
   {
     address: "0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
     tokens: 1000,
     percentage: 4,
     date: "2023-05-18",
-    type: "developer",
+    type: "developer" as const,
   },
 ];
 export default function TransparencyPage() {

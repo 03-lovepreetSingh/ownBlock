@@ -38,15 +38,14 @@ export default function PropertyPage({ params }: { params: Promise<{ id: string 
   const { data: attestations = [] } = usePropertyAttestations(id);
   const { data: ownershipRecords = [] } = usePropertyOwnership(id);
   const handlePurchase = () => {
-    if (!user || !property) return;
+    if (!user || !property || !property.tokenId) return;
     
     createInvestment.mutate(
       {
-        property_id: property.id,
-        user_id: user.id,
-        amount: purchaseAmount,
-        tokens_purchased: purchaseAmount,
-        status: 'pending'
+        propertyTokenId: property.tokenId,
+        amount: purchaseAmount.toString(),
+        tokenAmount: purchaseAmount.toString(),
+        price: property.tokenPrice || "0"
       },
       {
         onSuccess: () => {
@@ -168,7 +167,7 @@ export default function PropertyPage({ params }: { params: Promise<{ id: string 
                   Projected Annual Return
                 </p>
                 <p className="text-xl font-semibold text-primary">
-                  {property.expected_return}%
+                  {property.projectedAnnualReturn}%
                 </p>
               </div>
               <div className="p-4 bg-muted/30 rounded-lg">
@@ -176,19 +175,19 @@ export default function PropertyPage({ params }: { params: Promise<{ id: string 
                   Dividend Frequency
                 </p>
                 <p className="text-xl font-semibold">
-                  {property.dividend_frequency || 'Quarterly'}
+                  {property.dividendFrequency || 'Quarterly'}
                 </p>
               </div>
               <div className="p-4 bg-muted/30 rounded-lg">
                 <p className="text-sm text-muted-foreground">Management Fee</p>
                 <p className="text-xl font-semibold">
-                  {property.management_fee || '2%'}
+                  {property.managementFee || '2%'}
                 </p>
               </div>
               <div className="p-4 bg-muted/30 rounded-lg">
                 <p className="text-sm text-muted-foreground">Occupancy Rate</p>
                 <p className="text-xl font-semibold">
-                  {property.occupancy_rate || '95%'}
+                  {property.occupancyRate || '95%'}
                 </p>
               </div>
             </div>
@@ -213,7 +212,12 @@ export default function PropertyPage({ params }: { params: Promise<{ id: string 
                     <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
                     <circle cx="12" cy="10" r="3"></circle>
                   </svg>
-                  <p className="text-muted-foreground">{property.address}</p>
+                  <p className="text-muted-foreground">
+                    {property.address 
+                      ? `${property.address.street}, ${property.address.city}, ${property.address.state} ${property.address.zipCode}`
+                      : property.location
+                    }
+                  </p>
                 </div>
               </div>
             </div>
@@ -267,12 +271,12 @@ export default function PropertyPage({ params }: { params: Promise<{ id: string 
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Token Price</span>
-                  <span className="font-medium">${property.token_price?.toLocaleString()}</span>
+                  <span className="font-medium">${property.tokenPrice}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Total Supply</span>
                   <span className="font-medium">
-                    {property.total_tokens} tokens
+                    {property.totalSupply} tokens
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -280,14 +284,14 @@ export default function PropertyPage({ params }: { params: Promise<{ id: string 
                     Available Tokens
                   </span>
                   <span className="font-medium">
-                    {property.total_tokens - property.tokens_sold} tokens
+                    {property.availableSupply || 0} tokens
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">
                     Minimum Investment
                   </span>
-                  <span className="font-medium">${property.min_investment?.toLocaleString()}</span>
+                  <span className="font-medium">${property.minInvestment?.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Token Standard</span>
@@ -300,7 +304,7 @@ export default function PropertyPage({ params }: { params: Promise<{ id: string 
               <div className="space-y-3">
                 <div className="flex justify-between text-sm mb-1">
                   <span>Total Raised</span>
-                  <span>{Math.round((property.tokens_sold / property.total_tokens) * 100)}%</span>
+                  <span>{Math.round(((property.totalSupply || 0) - (property.availableSupply || 0)) / (property.totalSupply || 1) * 100)}%</span>
                 </div>
                 <div className="w-full bg-muted rounded-full h-2.5">
                   <motion.div
@@ -309,7 +313,7 @@ export default function PropertyPage({ params }: { params: Promise<{ id: string 
                       width: 0,
                     }}
                     animate={{
-                      width: `${(property.tokens_sold / property.total_tokens) * 100}%`,
+                      width: `${((property.totalSupply || 0) - (property.availableSupply || 0)) / (property.totalSupply || 1) * 100}%`,
                     }}
                     transition={{
                       duration: 1,
@@ -321,8 +325,8 @@ export default function PropertyPage({ params }: { params: Promise<{ id: string 
                   <span>
                     $
                     {(
-                      (property.tokens_sold / property.total_tokens) *
-                      property.valuation
+                      (((property.totalSupply || 0) - (property.availableSupply || 0)) / (property.totalSupply || 1)) *
+                      parseFloat(property.valuation || "0")
                     ).toLocaleString()}{" "}
                     raised
                   </span>
@@ -442,8 +446,8 @@ export default function PropertyPage({ params }: { params: Promise<{ id: string 
             <AnimatePresence mode="wait">
               <motion.img
                 key={activeImage}
-                src={property.image_url}
-                alt={property.name}
+                src={property.images?.[0] || '/placeholder-property.jpg'}
+                alt={property.title}
                 className="w-full h-full object-cover"
                 initial={{
                   opacity: 0,
@@ -467,7 +471,7 @@ export default function PropertyPage({ params }: { params: Promise<{ id: string 
             </div>
           </motion.div>
           <div className="flex gap-2 mb-6">
-            {property.image_url && (
+            {property.images?.[0] && (
               <motion.div
                 className={`cursor-pointer w-20 h-20 rounded-md overflow-hidden ${
                   activeImage === 0 ? "ring-2 ring-primary" : ""
@@ -490,8 +494,8 @@ export default function PropertyPage({ params }: { params: Promise<{ id: string 
                 }}
               >
                 <img
-                  src={property.image_url}
-                  alt={`${property.name}`}
+                  src={property.images[0]}
+                  alt={property.title}
                   className="w-full h-full object-cover"
                 />
               </motion.div>
@@ -533,7 +537,7 @@ export default function PropertyPage({ params }: { params: Promise<{ id: string 
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-2xl">{property.name}</CardTitle>
+                    <CardTitle className="text-2xl">{property.title}</CardTitle>
                 <CardDescription className="flex items-center mt-1">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -550,7 +554,9 @@ export default function PropertyPage({ params }: { params: Promise<{ id: string 
                     <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
                     <circle cx="12" cy="10" r="3"></circle>
                   </svg>
-                  {property.address}
+                  {typeof property.address === 'object' && property.address 
+                    ? `${property.address.street}, ${property.address.city}, ${property.address.state} ${property.address.zipCode}`
+                    : property.location || 'Location not available'}
                 </CardDescription>
                   </div>
                   <Badge variant="outline">${property.valuation?.toLocaleString()}</Badge>
@@ -567,14 +573,14 @@ export default function PropertyPage({ params }: { params: Promise<{ id: string 
                         <p className="text-sm text-muted-foreground">
                           Token Price
                         </p>
-                        <p className="font-semibold">${property.token_price?.toLocaleString()}</p>
+                        <p className="font-semibold">${property.tokenPrice}</p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">
                           Available Tokens
                         </p>
                         <p className="font-semibold">
-                          {property.total_tokens - property.tokens_sold}
+                          {property.availableSupply || 0}
                         </p>
                       </div>
                       <div>
@@ -582,7 +588,7 @@ export default function PropertyPage({ params }: { params: Promise<{ id: string 
                           Min Investment
                         </p>
                         <p className="font-semibold">
-                          ${property.min_investment?.toLocaleString()}
+                          ${property.minInvestment?.toLocaleString()}
                         </p>
                       </div>
                       <div>
@@ -590,15 +596,14 @@ export default function PropertyPage({ params }: { params: Promise<{ id: string 
                           Expected Return
                         </p>
                         <p className="font-semibold">
-                          {property.expected_return}%
-                        </p>
+                          {property.projectedAnnualReturn}%</p>
                       </div>
                     </div>
                   </div>
                   <div>
                     <div className="flex justify-between text-sm mb-1">
                       <span>Funding Progress</span>
-                      <span>{Math.round((property.tokens_sold / property.total_tokens) * 100)}%</span>
+                      <span>{Math.round(((property.totalSupply || 0) - (property.availableSupply || 0)) / (property.totalSupply || 1) * 100)}%</span>
                     </div>
                     <div className="w-full bg-muted rounded-full h-2">
                       <motion.div
@@ -607,7 +612,7 @@ export default function PropertyPage({ params }: { params: Promise<{ id: string 
                           width: 0,
                         }}
                         animate={{
-                          width: `${(property.tokens_sold / property.total_tokens) * 100}%`,
+                          width: `${((property.totalSupply || 0) - (property.availableSupply || 0)) / (property.totalSupply || 1) * 100}%`,
                         }}
                         transition={{
                           duration: 1,

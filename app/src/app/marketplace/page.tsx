@@ -13,7 +13,7 @@ import {
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { useUser } from "../../context/user-context";
-import { useProperties } from "../../hooks/useProperties";
+import { useProperties, Property } from "../../hooks/useProperties";
 // Real property data will be loaded from API
 export default function MarketplacePage() {
   const { user, isWhitelisted } = useUser();
@@ -30,15 +30,29 @@ export default function MarketplacePage() {
       (p) => filter === "all" || p.status.toLowerCase() === filter.toLowerCase()
     )
     .filter(
-      (p) => locationFilter === "all" || p.address.includes(locationFilter)
+      (p) => {
+        if (locationFilter === "all") return true;
+        const addressStr = p.address 
+          ? (typeof p.address === "string" ? p.address : p.address.city || "")
+          : "";
+        const locationStr = p.location || "";
+        return addressStr.toLowerCase().includes(locationFilter.toLowerCase()) ||
+               locationStr.toLowerCase().includes(locationFilter.toLowerCase());
+      }
     )
     .filter(
-      (p) =>
-        searchQuery === "" ||
-        p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (typeof p.address === "string"
-          ? p.address.toLowerCase().includes(searchQuery.toLowerCase())
-          : p.location.toLowerCase().includes(searchQuery.toLowerCase()))
+      (p) => {
+        if (searchQuery === "") return true;
+        const title = p.title.toLowerCase();
+        const addressStr = p.address 
+          ? (typeof p.address === "string" ? p.address : p.address.city || "")
+          : "";
+        const locationStr = p.location || "";
+        const query = searchQuery.toLowerCase();
+        return title.includes(query) || 
+               addressStr.includes(query) || 
+               locationStr.includes(query);
+      }
     );
 
   // Get unique locations for the filter
@@ -46,11 +60,8 @@ export default function MarketplacePage() {
     "all",
     ...new Set(
       properties.map((p) => {
-        // Handle both string and object address formats
-        if (typeof p.address === "string") {
-          return p.address.split(",")[0].trim();
-        } else if (p.address && typeof p.address === "object") {
-          return p.address.city || p.location || "Unknown";
+        if (p.address && typeof p.address === "object" && p.address.city) {
+          return p.address.city;
         }
         return p.location || "Unknown";
       })
@@ -321,11 +332,16 @@ export default function MarketplacePage() {
     </div>
   );
 }
-function PropertyCard({ property, index, isWhitelisted, user }) {
+function PropertyCard({ property, index, isWhitelisted, user }: {
+  property: Property;
+  index: number;
+  isWhitelisted: boolean;
+  user: any;
+}) {
   // Calculate funding progress based on tokens sold vs total tokens
   const fundingProgress =
-    property.tokens_sold && property.total_tokens
-      ? Math.round((property.tokens_sold / property.total_tokens) * 100)
+    property.availableSupply && property.totalSupply
+      ? Math.round(((property.totalSupply - property.availableSupply) / property.totalSupply) * 100)
       : 0;
 
   return (
@@ -351,7 +367,7 @@ function PropertyCard({ property, index, isWhitelisted, user }) {
           <div className="relative overflow-hidden rounded-t-lg h-48">
             <img
               src={
-                property.image_url ||
+                property.images?.[0] ||
                 "https://images.unsplash.com/photo-1460317442991-0ec209397118?q=80&w=800&auto=format&fit=crop"
               }
               alt={property.title}

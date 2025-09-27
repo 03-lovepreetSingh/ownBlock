@@ -135,7 +135,7 @@ export default function AdminProperties() {
       : properties.filter(
           (p) => p.status.toLowerCase() === filter.toLowerCase()
         );
-  const approveProperty = (id) => {
+  const approveProperty = (id: string) => {
     setProperties((prev) =>
       prev.map((p) => {
         if (p.id === id) {
@@ -149,7 +149,7 @@ export default function AdminProperties() {
       })
     );
   };
-  const rejectProperty = (id) => {
+  const rejectProperty = (id: string) => {
     setProperties((prev) =>
       prev.map((p) => {
         if (p.id === id) {

@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { FormData } from "../../pages/tokenize";
+import { FormData } from "../../app/tokenize/page";
 interface PropertyDetailsStepProps {
   formData: FormData;
   handleChange: (

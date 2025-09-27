@@ -54,10 +54,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Check minimum investment requirement
-    if (validatedData.amount < property.minimumInvestment) {
+    if (validatedData.amount < propertyToken.minInvestment) {
       return NextResponse.json(
         errorResponse(
-          `Minimum investment amount is ${property.minimumInvestment}`
+          `Minimum investment amount is ${propertyToken.minInvestment}`
         ),
         { status: 400 }
       );
@@ -76,11 +76,9 @@ export async function POST(request: NextRequest) {
       .values({
         userId: user.id,
         propertyTokenId: validatedData.propertyTokenId,
-        amount: validatedData.amount,
+        investmentAmount: validatedData.amount.toString(),
         tokenAmount: validatedData.tokenAmount,
-        status: "pending",
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        status: "active",
       })
       .returning();
 
@@ -101,7 +99,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        errorResponse("Validation error", error.errors),
+        errorResponse("Validation error", error.issues),
         { status: 400 }
       );
     }
