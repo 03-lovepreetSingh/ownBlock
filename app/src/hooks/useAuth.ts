@@ -6,8 +6,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 // User profile types
 interface UserProfile {
   id: string;
+  name?: string;
   email: string;
-  address: string;
+  address?: string;
+  phone?: string;
+  image?: string;
   kycStatus: "pending" | "verified" | "rejected";
   role: "user" | "admin";
   createdAt: string;
@@ -15,7 +18,10 @@ interface UserProfile {
 }
 
 interface UpdateProfileData {
+  name?: string;
   address?: string;
+  phone?: string;
+  image?: string;
 }
 
 // API functions
@@ -24,7 +30,8 @@ const fetchUserProfile = async (): Promise<UserProfile> => {
   if (!response.ok) {
     throw new Error("Failed to fetch user profile");
   }
-  return response.json();
+  const result = await response.json();
+  return result.data; // Extract data from the API response wrapper
 };
 
 const updateUserProfile = async (data: UpdateProfileData): Promise<UserProfile> => {
@@ -38,7 +45,8 @@ const updateUserProfile = async (data: UpdateProfileData): Promise<UserProfile> 
   if (!response.ok) {
     throw new Error("Failed to update user profile");
   }
-  return response.json();
+  const result = await response.json();
+  return result.data; // Extract data from the API response wrapper
 };
 
 // Auth hook

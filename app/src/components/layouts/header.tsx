@@ -10,10 +10,13 @@ import { Sidebar } from "./sidebar";
 import { motion } from "framer-motion";
 import { Logo } from "../logo";
 import ConnectButton from "../connect-button";
+import useSession from "next-auth/react";
 export function Header() {
   const pathname = usePathname();
   const { user, login, logout, isWhitelisted } = useUser();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { data: session } = useSession();
+  console.log(session);
   const navItems = [
     {
       path: "/",

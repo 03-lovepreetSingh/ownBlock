@@ -21,6 +21,7 @@ import { TokenizationDetailsStep } from "../../components/tokenize/TokenizationD
 import { OwnershipStructureStep } from "../../components/tokenize/OwnershipStructureStep";
 import { DocumentsStep } from "../../components/tokenize/DocumentsStep";
 import { ConfirmationStep } from "../../components/tokenize/ConfirmationStep";
+import { useCreateProperty } from "../../hooks/useProperties";
 // Define form types
 export type InvestorDistribution = {
   retail: number;
@@ -83,6 +84,7 @@ export const documentTypes = [
 export default function TokenizePage() {
   const { user, isWhitelisted } = useUser();
   const { toast } = useToast();
+  const createProperty = useCreateProperty();
   const [step, setStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -254,17 +256,47 @@ export default function TokenizePage() {
       return;
     }
     setIsSubmitting(true);
-    // Simulate API call
+    
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Map form data to property API structure
+      const propertyData = {
+        title: formData.propertyName,
+        description: `Property tokenization request for ${formData.propertyName}`,
+        location: formData.address,
+        propertyType: "residential" as const, // Default to residential, could be made configurable
+        valuation: formData.valuation,
+        images: [], // Would need to handle image uploads
+        features: [], // Could extract from documents or add to form
+        yearBuilt: undefined, // Could add to form if needed
+        squareFootage: formData.size ? parseInt(formData.size) : undefined,
+        occupancyRate: undefined, // Could add to form if needed
+        projectedAnnualReturn: undefined, // Could calculate from tokenization details
+        managementFee: undefined, // Could add to form if needed
+        dividendFrequency: "quarterly" as const, // Default value
+        address: {
+          street: formData.address,
+          city: "", // Would need to parse from address
+          state: "", // Would need to parse from address
+          zipCode: "", // Would need to parse from address
+          country: "", // Would need to parse from address
+        },
+      };
+
+      await createProperty.mutateAsync(propertyData);
+      
       setIsSubmitted(true);
       setIsSubmitting(false);
+      
+      toast({
+        title: "Success",
+        description: "Property tokenization request submitted successfully!",
+        type: "success",
+      });
     } catch (error) {
       setIsSubmitting(false);
       toast({
         title: "Error",
-        description:
-          "There was an error submitting your request. Please try again.",
+        description: error instanceof Error ? error.message : "There was an error submitting your request. Please try again.",
         type: "error",
       });
     }

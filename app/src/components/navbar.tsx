@@ -34,12 +34,15 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import ConnectButton from "./connect-button";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
+
 export default function Navbar() {
   const pathname = usePathname();
   const { user, login, logout, isWhitelisted, isAuthenticated, userProfile } = useUser();
   const { data: session } = useSession();
+  console.log("Session:", session);
   const [isOpen, setIsOpen] = useState(false);
+
   const navItems = [
     {
       path: "/",
@@ -189,6 +192,40 @@ export default function Navbar() {
                       </Button>
                     </>
                   )}
+                  {!isAuthenticated && (
+                    <>
+                      <div className="h-px bg-border my-2" />
+                      <Button
+                        variant="outline"
+                        className="justify-start px-3"
+                        onClick={() => {
+                          signIn('google');
+                          setIsOpen(false);
+                        }}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="mr-2"
+                        >
+                          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                          <polyline points="15,3 21,3 21,9" />
+                          <line x1="10" y1="14" x2="21" y2="3" />
+                        </svg>
+                        Sign In
+                      </Button>
+                      <div className="px-3">
+                        <ConnectButton />
+                      </div>
+                    </>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>
@@ -274,6 +311,29 @@ export default function Navbar() {
                         <p className="text-xs leading-none text-muted-foreground">
                           {session.user.email}
                         </p>
+                        {userProfile?.address && (
+                          <div className="flex items-center gap-2 mt-2 pt-2 border-t">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="12"
+                              height="12"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="text-muted-foreground"
+                            >
+                              <path d="M9 12l2 2 4-4"></path>
+                              <path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1"></path>
+                              <path d="M3 13v6c0 .552.448 1 1 1h16c.552 0 1-.448 1-1v-6"></path>
+                            </svg>
+                            <p className="text-xs font-mono text-muted-foreground">
+                              {userProfile.address.slice(0, 6)}...{userProfile.address.slice(-4)}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
@@ -298,8 +358,34 @@ export default function Navbar() {
               </div>
             </div>
           ) : (
-            <ConnectButton />
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => signIn('google')}
+                className="flex items-center gap-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                  <polyline points="15,3 21,3 21,9" />
+                  <line x1="10" y1="14" x2="21" y2="3" />
+                </svg>
+                Sign In
+              </Button>
+           
+            </div>
           )}
+             <ConnectButton />
         </div>
       </div>
     </header>

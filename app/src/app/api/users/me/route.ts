@@ -11,9 +11,10 @@ import {
 } from "@/lib/api-response";
 
 const updateUserSchema = z.object({
+  name: z.string().min(1, "Name is required").optional(),
   address: z.string().optional(),
-  name: z.string().optional(),
   phone: z.string().optional(),
+  image: z.string().url("Image must be a valid URL").optional(),
 });
 
 export async function GET(request: NextRequest) {

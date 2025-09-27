@@ -23,6 +23,7 @@ const kycSchema = z.object({
     .url("Document back image must be a valid URL")
     .optional(),
   selfieImage: z.string().url("Selfie image must be a valid URL"),
+  notes: z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -59,6 +60,8 @@ export async function POST(request: NextRequest) {
         documentUrl: validatedData.documentFrontImage,
         selfieUrl: validatedData.selfieImage,
         submittedAt: new Date(),
+        status: "pending",
+        notes: validatedData.notes || null,
       })
       .returning();
 

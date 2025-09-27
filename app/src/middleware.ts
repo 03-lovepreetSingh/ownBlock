@@ -7,11 +7,12 @@ const protectedRoutes = [
   '/api/investments',
   '/api/order-book',
   '/api/dividend-payments/me',
+  '/api/kyc', // Add KYC to protected routes so users need to be authenticated
 ];
 
 const adminRoutes = [
   { path: '/api/properties', methods: ['POST'] }, // Only POST requires admin
-  { path: '/api/kyc', methods: ['GET', 'POST', 'PUT', 'DELETE'] },
+  { path: '/api/kyc', methods: ['GET', 'PUT', 'DELETE'] }, // Removed POST - users can submit KYC
   { path: '/api/dividends', methods: ['GET', 'POST', 'PUT', 'DELETE'] },
   { path: '/api/dividend-payments', methods: ['GET', 'POST', 'PUT', 'DELETE'] },
 ];

@@ -8,6 +8,13 @@
       "when": 1758962042103,
       "tag": "0000_tidy_ser_duncan",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1758999609855,
+      "tag": "0001_wonderful_jack_power",
+      "breakpoints": true
     }
   ]
 }

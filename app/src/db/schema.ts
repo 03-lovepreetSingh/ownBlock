@@ -12,11 +12,52 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-// Users table
+
+// NextAuth.js required tables
+export const account = pgTable("account", {
+  userId: uuid("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  type: varchar("type", { length: 255 }).notNull(),
+  provider: varchar("provider", { length: 255 }).notNull(),
+  providerAccountId: varchar("providerAccountId", { length: 255 }).notNull(),
+  refresh_token: text("refresh_token"),
+  access_token: text("access_token"),
+  expires_at: integer("expires_at"),
+  token_type: varchar("token_type", { length: 255 }),
+  scope: varchar("scope", { length: 255 }),
+  id_token: text("id_token"),
+  session_state: varchar("session_state", { length: 255 }),
+}, (account) => ({
+  compoundKey: primaryKey({
+    columns: [account.provider, account.providerAccountId],
+  }),
+}));
+
+export const session = pgTable("session", {
+  sessionToken: varchar("sessionToken", { length: 255 }).notNull().primaryKey(),
+  userId: uuid("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  expires: timestamp("expires", { mode: "date" }).notNull(),
+});
+
+export const verificationToken = pgTable("verificationToken", {
+  identifier: varchar("identifier", { length: 255 }).notNull(),
+  token: varchar("token", { length: 255 }).notNull(),
+  expires: timestamp("expires", { mode: "date" }).notNull(),
+}, (vt) => ({
+  compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
+}));
+
+// Users table (updated for NextAuth compatibility)
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
-  address: varchar("address", { length: 42 }).notNull().unique(),
-  email: varchar("email", { length: 255 }),
+  name: varchar("name", { length: 255 }),
+  email: varchar("email", { length: 255 }).notNull(),
+  emailVerified: timestamp("emailVerified", { mode: "date" }),
+  image: text("image"),
+  address: varchar("address", { length: 42 }).unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   isAdmin: boolean("is_admin").default(false),
@@ -171,7 +212,17 @@ export const dividendPayments = pgTable("dividend_payments", {
   txHash: varchar("tx_hash", { length: 66 }),
 });
 // Relations
+export const accountRelations = relations(account, ({ one }) => ({
+  user: one(users, { fields: [account.userId], references: [users.id] }),
+}));
+
+export const sessionRelations = relations(session, ({ one }) => ({
+  user: one(users, { fields: [session.userId], references: [users.id] }),
+}));
+
 export const usersRelations = relations(users, ({ many }) => ({
+  accounts: many(account),
+  sessions: many(session),
   kycRecord: many(kycRecords),
   investments: many(investments),
   orders: many(orderBook),
