@@ -24,7 +24,7 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "./ui/navigation-menu";
-import { Avatar, AvatarFallback } from "./ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,9 +34,11 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import ConnectButton from "./connect-button";
+import { useSession } from "next-auth/react";
 export default function Navbar() {
   const pathname = usePathname();
-  const { user, login, logout, isWhitelisted } = useUser();
+  const { user, login, logout, isWhitelisted, isAuthenticated, userProfile } = useUser();
+  const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const navItems = [
     {
@@ -125,9 +127,33 @@ export default function Navbar() {
                       {item.label}
                     </Link>
                   ))}
-                  {user && (
+                  {isAuthenticated && session?.user && (
                     <>
                       <div className="h-px bg-border my-2" />
+                      <div className="flex items-center gap-3 px-3 py-2">
+                        <Avatar className="h-8 w-8">
+                          {session.user.image && (
+                            <AvatarImage 
+                              src={session.user.image} 
+                              alt={session.user.name || session.user.email || "User"} 
+                            />
+                          )}
+                          <AvatarFallback className="text-xs">
+                            {session.user.name 
+                              ? session.user.name.split(' ').map(n => n[0]).join('').toUpperCase()
+                              : session.user.email?.[0]?.toUpperCase() || 'U'
+                            }
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">
+                            {session.user.name || 'User'}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {session.user.email}
+                          </span>
+                        </div>
+                      </div>
                       <Link
                         href="/profile"
                         className="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted"
@@ -142,7 +168,7 @@ export default function Navbar() {
                       >
                         KYC Verification
                       </Link>
-                      {user.address?.startsWith("0xa") && (
+                      {userProfile?.role === "admin" && (
                         <Link
                           href="/admin"
                           className="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted"
@@ -195,9 +221,9 @@ export default function Navbar() {
         </div>
         <div className="flex items-center gap-3">
           <ThemeToggle />
-          {user ? (
+          {isAuthenticated && session?.user ? (
             <div className="flex items-center gap-4">
-              {isWhitelisted() && (
+              {userProfile?.kycStatus === "verified" && (
                 <motion.span
                   className="hidden md:inline-flex items-center"
                   initial={{
@@ -221,18 +247,35 @@ export default function Navbar() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm" className="gap-2">
                       <Avatar className="h-6 w-6">
+                        {session.user.image && (
+                          <AvatarImage 
+                            src={session.user.image} 
+                            alt={session.user.name || session.user.email || "User"} 
+                          />
+                        )}
                         <AvatarFallback className="text-xs">
-                          {user.address.substring(2, 4).toUpperCase()}
+                          {session.user.name 
+                            ? session.user.name.split(' ').map(n => n[0]).join('').toUpperCase()
+                            : session.user.email?.[0]?.toUpperCase() || 'U'
+                          }
                         </AvatarFallback>
                       </Avatar>
                       <span className="hidden sm:inline-block">
-                        {user.address.substring(0, 6)}...
-                        {user.address.substring(user.address.length - 4)}
+                        {session.user.name || session.user.email?.split('@')[0] || 'User'}
                       </span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                    <DropdownMenuLabel>
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">
+                          {session.user.name || 'User'}
+                        </p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {session.user.email}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <Link href="/profile">
                       <DropdownMenuItem>Profile</DropdownMenuItem>
@@ -243,7 +286,7 @@ export default function Navbar() {
                     <Link href="/kyc">
                       <DropdownMenuItem>KYC Verification</DropdownMenuItem>
                     </Link>
-                    {user.address?.startsWith("0xa") && (
+                    {userProfile?.role === "admin" && (
                       <Link href="/admin">
                         <DropdownMenuItem>Admin</DropdownMenuItem>
                       </Link>
