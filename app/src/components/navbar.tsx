@@ -33,6 +33,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import ConnectButton from "./connect-button";
 export default function Navbar() {
   const pathname = usePathname();
   const { user, login, logout, isWhitelisted } = useUser();
@@ -254,9 +255,7 @@ export default function Navbar() {
               </div>
             </div>
           ) : (
-            <Button size="sm" onClick={login} className="px-6">
-              Connect Wallet
-            </Button>
+            <ConnectButton />
           )}
         </div>
       </div>

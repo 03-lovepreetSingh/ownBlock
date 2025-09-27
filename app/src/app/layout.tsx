@@ -29,8 +29,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // const headersObj = await headers();
-  // const cookies = headersObj.get("cookie");
+  const headersObj = await headers();
+  const cookies = headersObj.get("cookie");
   return (
     <html lang="en">
       <body
@@ -52,7 +52,9 @@ export default async function RootLayout({
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5 }}
                 >
-                  {children}
+                  <ContextProvider cookies={cookies}>
+                    {children}
+                  </ContextProvider>
                 </MotionMain>
 
                 <Footer />

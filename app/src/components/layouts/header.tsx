@@ -9,7 +9,7 @@ import { useUser } from "../../context/user-context";
 import { Sidebar } from "./sidebar";
 import { motion } from "framer-motion";
 import { Logo } from "../logo";
-
+import ConnectButton from "../connect-button";
 export function Header() {
   const pathname = usePathname();
   const { user, login, logout, isWhitelisted } = useUser();
@@ -54,7 +54,7 @@ export function Header() {
         <div className="flex items-center gap-6">
           <Logo />
           <div className="md:hidden">
-            <Button
+            <ConnectButton
               variant="ghost"
               size="icon"
               onClick={() => setSidebarOpen((prev) => !prev)}
@@ -75,7 +75,7 @@ export function Header() {
                 <line x1="3" y1="6" x2="21" y2="6"></line>
                 <line x1="3" y1="18" x2="21" y2="18"></line>
               </svg>
-            </Button>
+            </ConnectButton>
           </div>
           <nav className="hidden md:flex gap-6">
             {navItems.map((item) => (
