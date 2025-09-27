@@ -14,6 +14,7 @@ import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { useUser } from "../../context/user-context";
 import { useProperties, Property } from "../../hooks/useProperties";
+import { useMarketplaceTokens } from "../../hooks/useMarketplaceTokens";
 // Real property data will be loaded from API
 export default function MarketplacePage() {
   const { user, isWhitelisted } = useUser();
@@ -23,11 +24,27 @@ export default function MarketplacePage() {
 
   // Fetch real properties from API
   const { data: properties = [], isLoading, error } = useProperties();
+  
+  // Fetch tokenized properties from marketplace
+  const { data: marketplaceData, isLoading: isLoadingTokens } = useMarketplaceTokens({
+    limit: 20,
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  });
+
+  // Combine regular properties and tokenized properties
+  const tokenizedProperties = marketplaceData?.tokens || [];
+  const allProperties = [...properties, ...tokenizedProperties];
 
   // Filter properties based on multiple criteria
-  const filteredProperties = properties
+  const filteredProperties = allProperties
     .filter(
-      (p) => filter === "all" || p.status.toLowerCase() === filter.toLowerCase()
+      (p) => {
+        if (filter === "all") return true;
+        if (filter === "tokenized") return "contractAddress" in p && p.contractAddress;
+        if (filter === "traditional") return !("contractAddress" in p) || !p.contractAddress;
+        return p.status?.toLowerCase() === filter.toLowerCase();
+      }
     )
     .filter(
       (p) => {
@@ -59,7 +76,7 @@ export default function MarketplacePage() {
   const locations = [
     "all",
     ...new Set(
-      properties.map((p) => {
+      allProperties.map((p) => {
         if (p.address && typeof p.address === "object" && p.address.city) {
           return p.address.city;
         }
@@ -67,8 +84,9 @@ export default function MarketplacePage() {
       })
     ),
   ];
+  
   // Show loading state
-  if (isLoading) {
+  if (isLoading || isLoadingTokens) {
     return (
       <div className="w-full bg-background">
         <div className="px-4 py-12 md:py-16">
@@ -282,6 +300,20 @@ export default function MarketplacePage() {
                 All Properties
               </Button>
               <Button
+                variant={filter === "tokenized" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFilter("tokenized")}
+              >
+                Tokenized
+              </Button>
+              <Button
+                variant={filter === "traditional" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFilter("traditional")}
+              >
+                Traditional
+              </Button>
+              <Button
                 variant={filter === "active" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setFilter("active")}
@@ -373,12 +405,17 @@ function PropertyCard({ property, index, isWhitelisted, user }: {
               alt={property.title}
               className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
             />
-            <div className="absolute top-2 right-2">
+            <div className="absolute top-2 right-2 flex gap-2">
               <Badge
                 variant={property.status === "active" ? "success" : "secondary"}
               >
                 {property.status === "active" ? "Active" : "Coming Soon"}
               </Badge>
+              {"contractAddress" in property && property.contractAddress && (
+                <Badge variant="default" className="bg-blue-600 hover:bg-blue-700">
+                  Tokenized
+                </Badge>
+              )}
             </div>
           </div>
           <CardHeader>

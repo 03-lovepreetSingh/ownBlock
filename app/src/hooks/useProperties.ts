@@ -77,7 +77,7 @@ const fetchProperty = async (id: string): Promise<Property> => {
 };
 
 const createProperty = async (data: CreatePropertyData): Promise<Property> => {
-  const response = await fetch("/api/properties", {
+  const response = await fetch("/api/properties/create", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -87,7 +87,8 @@ const createProperty = async (data: CreatePropertyData): Promise<Property> => {
   if (!response.ok) {
     throw new Error("Failed to create property");
   }
-  return response.json();
+  const result = await response.json();
+  return result.data; // Extract data from the API response wrapper
 };
 
 // Hooks

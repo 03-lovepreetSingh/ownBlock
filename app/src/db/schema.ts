@@ -112,6 +112,9 @@ export const properties = pgTable("properties", {
     zipCode: string;
     country: string;
   }>(),
+  contractAddress: varchar("contract_address", { length: 42 }), // ERC-3643 token contract address
+  deploymentTxHash: varchar("deployment_tx_hash", { length: 66 }), // Transaction hash of contract deployment
+  isTokenized: boolean("is_tokenized").default(false), // Whether the property has been tokenized
 });
 // Property tokens
 export const propertyTokens = pgTable("property_tokens", {

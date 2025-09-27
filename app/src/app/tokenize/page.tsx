@@ -22,6 +22,10 @@ import { OwnershipStructureStep } from "../../components/tokenize/OwnershipStruc
 import { DocumentsStep } from "../../components/tokenize/DocumentsStep";
 import { ConfirmationStep } from "../../components/tokenize/ConfirmationStep";
 import { useCreateProperty } from "../../hooks/useProperties";
+import { useContractDeployment } from "../../hooks/useContractDeployment";
+import { useTokenizeProperty } from "../../hooks/useTokenizeProperty";
+import { useWallet } from "../../hooks/useWallet";
+import type { ContractDeploymentData } from "../../types/contract";
 // Define form types
 export type InvestorDistribution = {
   retail: number;
@@ -85,9 +89,13 @@ export default function TokenizePage() {
   const { user, isWhitelisted } = useUser();
   const { toast } = useToast();
   const createProperty = useCreateProperty();
+  const { walletInfo, isConnected } = useWallet();
+  const { deployContract, isLoading: isDeploying, isSuccess: isDeploymentSuccess, contractAddress, transactionHash, error: deploymentError } = useContractDeployment();
+  const tokenizeProperty = useTokenizeProperty();
+  
   const [step, setStep] = useState(1);
-  const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
   >({});
@@ -118,6 +126,60 @@ export default function TokenizePage() {
       return acc;
     }, {} as Record<string, Document>),
   });
+  
+  // Handle successful contract deployment
+  useEffect(() => {
+    if (isDeploymentSuccess && contractAddress && transactionHash) {
+      // Create property in database with contract information
+      const propertyData = {
+        title: formData.propertyName,
+        description: `Property tokenization request for ${formData.propertyName}`,
+        location: formData.address,
+        propertyType: "residential" as const,
+        valuation: parseFloat(formData.valuation), // Convert string to number
+      };
+
+      createProperty.mutate(propertyData, {
+        onSuccess: (createdProperty) => {
+          // Now update the property with contract information
+          tokenizeProperty.mutate({
+            propertyId: createdProperty.id,
+            data: {
+              contractAddress,
+              deploymentTxHash: transactionHash,
+            },
+          }, {
+            onSuccess: () => {
+              setIsSubmitting(false);
+              setIsSubmitted(true);
+              toast({
+                title: "Success!",
+                description: "Your property has been successfully tokenized and is now available on the marketplace.",
+                type: "success",
+              });
+            },
+            onError: (error) => {
+              setIsSubmitting(false);
+              toast({
+                title: "Error",
+                description: `Contract deployed but failed to update database: ${error.message}`,
+                type: "error",
+              });
+            },
+          });
+        },
+        onError: (error) => {
+          setIsSubmitting(false);
+          toast({
+            title: "Error",
+            description: `Contract deployed but failed to create property: ${error.message}`,
+            type: "error",
+          });
+        },
+      });
+    }
+  }, [isDeploymentSuccess, contractAddress, transactionHash, formData, createProperty, tokenizeProperty, toast]);
+  
   // Check if investor distribution sums to 100%
   useEffect(() => {
     const { retail, institutional, developer } = formData.investorDistribution;
@@ -255,43 +317,35 @@ export default function TokenizePage() {
       });
       return;
     }
+
+    if (!isConnected) {
+      toast({
+        title: "Wallet Not Connected",
+        description: "Please connect your wallet to deploy the token contract.",
+        type: "error",
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
-      // Map form data to property API structure
-      const propertyData = {
-        title: formData.propertyName,
-        description: `Property tokenization request for ${formData.propertyName}`,
-        location: formData.address,
-        propertyType: "residential" as const, // Default to residential, could be made configurable
-        valuation: formData.valuation,
-        images: [], // Would need to handle image uploads
-        features: [], // Could extract from documents or add to form
-        yearBuilt: undefined, // Could add to form if needed
-        squareFootage: formData.size ? parseInt(formData.size) : undefined,
-        occupancyRate: undefined, // Could add to form if needed
-        projectedAnnualReturn: undefined, // Could calculate from tokenization details
-        managementFee: undefined, // Could add to form if needed
-        dividendFrequency: "quarterly" as const, // Default value
-        address: {
-          street: formData.address,
-          city: "", // Would need to parse from address
-          state: "", // Would need to parse from address
-          zipCode: "", // Would need to parse from address
-          country: "", // Would need to parse from address
-        },
+      // Step 1: Deploy smart contract first
+      const contractData = {
+        name: formData.propertyName,
+        symbol: formData.propertyName.replace(/\s+/g, '').substring(0, 6).toUpperCase(),
+        assetPassportCID: "QmDefaultCID", // Would be replaced with actual IPFS CID
+        maxHoldingBps: 1000, // 10% max holding by default
       };
 
-      await createProperty.mutateAsync(propertyData);
-      
-      setIsSubmitted(true);
-      setIsSubmitting(false);
+      await deployContract(contractData);
       
       toast({
-        title: "Success",
-        description: "Property tokenization request submitted successfully!",
-        type: "success",
+        title: "Contract Deployment Started",
+        description: "Your token contract is being deployed. Please wait for confirmation. Property will be created once contract is deployed.",
+        type: "info",
       });
+
     } catch (error) {
       setIsSubmitting(false);
       toast({
