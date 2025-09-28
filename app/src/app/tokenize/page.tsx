@@ -24,6 +24,7 @@ import { ConfirmationStep } from "../../components/tokenize/ConfirmationStep";
 import { useCreateProperty } from "../../hooks/useProperties";
 import { useContractDeployment } from "../../hooks/useContractDeployment";
 import { useTokenizeProperty } from "../../hooks/useTokenizeProperty";
+import { useCreatePropertyToken } from "../../hooks/useCreatePropertyToken";
 import { useWallet } from "../../hooks/useWallet";
 import type { ContractDeploymentData } from "../../types/contract";
 // Define form types
@@ -89,6 +90,7 @@ export default function TokenizePage() {
   const { user, isWhitelisted } = useUser();
   const { toast } = useToast();
   const createProperty = useCreateProperty();
+  const createPropertyToken = useCreatePropertyToken();
   const { walletInfo, isConnected } = useWallet();
   const { deployContract, isLoading: isDeploying, isSuccess: isDeploymentSuccess, contractAddress, transactionHash, error: deploymentError } = useContractDeployment();
   const tokenizeProperty = useTokenizeProperty();
@@ -136,33 +138,59 @@ export default function TokenizePage() {
         description: `Property tokenization request for ${formData.propertyName}`,
         location: formData.address,
         propertyType: "residential" as const,
-        valuation: parseFloat(formData.valuation), // Convert string to number
+        valuation: formData.valuation, // Keep as string since interface expects string
+        images: [], // Empty array for now
+        features: [], // Empty array for now
       };
 
       createProperty.mutate(propertyData, {
         onSuccess: (createdProperty) => {
-          // Now update the property with contract information
-          tokenizeProperty.mutate({
+          // Create property token record with contract address
+          const propertyTokenData = {
             propertyId: createdProperty.id,
-            data: {
-              contractAddress,
-              deploymentTxHash: transactionHash,
-            },
-          }, {
+            tokenSymbol: formData.propertyName.replace(/\s+/g, '').toUpperCase().substring(0, 10),
+            totalSupply: parseInt(formData.totalTokens) || 1000,
+            availableSupply: parseInt(formData.totalTokens) || 1000,
+            tokenPrice: parseFloat(formData.tokenPrice) || 100,
+            minInvestment: parseInt(formData.fractionSize) || 1,
+            contractAddress: contractAddress,
+            tokenStandard: formData.tokenStandard || "ERC-20",
+          };
+
+          createPropertyToken.mutate(propertyTokenData, {
             onSuccess: () => {
-              setIsSubmitting(false);
-              setIsSubmitted(true);
-              toast({
-                title: "Success!",
-                description: "Your property has been successfully tokenized and is now available on the marketplace.",
-                type: "success",
+              // Now update the property with contract information
+              tokenizeProperty.mutate({
+                propertyId: createdProperty.id,
+                data: {
+                  contractAddress,
+                  deploymentTxHash: transactionHash,
+                },
+              }, {
+                onSuccess: () => {
+                  setIsSubmitting(false);
+                  setIsSubmitted(true);
+                  toast({
+                    title: "Success!",
+                    description: "Your property has been successfully tokenized and is now available on the marketplace.",
+                    type: "success",
+                  });
+                },
+                onError: (error) => {
+                  setIsSubmitting(false);
+                  toast({
+                    title: "Error",
+                    description: `Property token created but failed to update property: ${error.message}`,
+                    type: "error",
+                  });
+                },
               });
             },
             onError: (error) => {
               setIsSubmitting(false);
               toast({
                 title: "Error",
-                description: `Contract deployed but failed to update database: ${error.message}`,
+                description: `Property created but failed to create property token: ${error.message}`,
                 type: "error",
               });
             },
@@ -178,7 +206,7 @@ export default function TokenizePage() {
         },
       });
     }
-  }, [isDeploymentSuccess, contractAddress, transactionHash, formData, createProperty, tokenizeProperty, toast]);
+  }, [isDeploymentSuccess, contractAddress, transactionHash, formData, createProperty, createPropertyToken, tokenizeProperty, toast]);
   
   // Check if investor distribution sums to 100%
   useEffect(() => {
@@ -336,6 +364,9 @@ export default function TokenizePage() {
         symbol: formData.propertyName.replace(/\s+/g, '').substring(0, 6).toUpperCase(),
         assetPassportCID: "QmDefaultCID", // Would be replaced with actual IPFS CID
         maxHoldingBps: 1000, // 10% max holding by default
+        totalSupply: formData.totalTokens,
+        tokenPrice: formData.tokenPrice,
+        minInvestment: formData.fractionSize,
       };
 
       await deployContract(contractData);
@@ -343,7 +374,7 @@ export default function TokenizePage() {
       toast({
         title: "Contract Deployment Started",
         description: "Your token contract is being deployed. Please wait for confirmation. Property will be created once contract is deployed.",
-        type: "info",
+        type: "default",
       });
 
     } catch (error) {

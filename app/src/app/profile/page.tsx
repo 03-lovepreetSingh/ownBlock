@@ -17,7 +17,10 @@ import { useUser } from "../../context/user-context";
 import { useToast } from "../../components/ui/toaster";
 import { useAuth } from "../../hooks/useAuth";
 import { useWallet } from "../../hooks/useWallet";
-import { userProfileSchema, type UserProfileFormData } from "../../lib/validation";
+import {
+  userProfileSchema,
+  type UserProfileFormData,
+} from "../../lib/validation";
 
 // Helper function to get network name from chain ID
 const getNetworkName = (chainId: number): string => {
@@ -31,6 +34,7 @@ const getNetworkName = (chainId: number): string => {
     97: "BSC Testnet",
     43114: "Avalanche Mainnet",
     43113: "Avalanche Fuji Testnet",
+    7777777: "Flow Testnet",
   };
   return networks[chainId] || `Unknown Network (${chainId})`;
 };
@@ -38,10 +42,17 @@ const getNetworkName = (chainId: number): string => {
 export default function ProfilePage() {
   const { user, isWhitelisted, logout } = useUser();
   const { userProfile, updateProfile, isUpdatingProfile } = useAuth();
-  const { walletInfo, connectWallet, disconnectWallet, isConnected, address, chainId } = useWallet();
+  const {
+    walletInfo,
+    connectWallet,
+    disconnectWallet,
+    isConnected,
+    address,
+    chainId,
+  } = useWallet();
   const router = useRouter();
   const { toast } = useToast();
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<UserProfileFormData>({
     name: "",
@@ -61,13 +72,15 @@ export default function ProfilePage() {
     }
   }, [userProfile]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
-    
+
     // Clear error for this field when user starts typing
     if (formErrors[name]) {
       setFormErrors((prev) => ({
@@ -79,11 +92,11 @@ export default function ProfilePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       // Validate form data
       const validatedData = userProfileSchema.parse(formData);
-      
+
       await updateProfile(validatedData);
       setIsEditing(false);
       setFormErrors({});
@@ -185,7 +198,9 @@ export default function ProfilePage() {
                         placeholder="Enter your full name"
                       />
                       {formErrors.name && (
-                        <p className="text-sm text-red-500 mt-1">{formErrors.name}</p>
+                        <p className="text-sm text-red-500 mt-1">
+                          {formErrors.name}
+                        </p>
                       )}
                     </div>
                     <div>
@@ -203,7 +218,9 @@ export default function ProfilePage() {
                         placeholder="Enter your phone number"
                       />
                       {formErrors.phone && (
-                        <p className="text-sm text-red-500 mt-1">{formErrors.phone}</p>
+                        <p className="text-sm text-red-500 mt-1">
+                          {formErrors.phone}
+                        </p>
                       )}
                     </div>
                     <div>
@@ -221,7 +238,9 @@ export default function ProfilePage() {
                         placeholder="Enter your address"
                       />
                       {formErrors.address && (
-                        <p className="text-sm text-red-500 mt-1">{formErrors.address}</p>
+                        <p className="text-sm text-red-500 mt-1">
+                          {formErrors.address}
+                        </p>
                       )}
                     </div>
                     <div className="flex gap-2 justify-end">
@@ -278,7 +297,15 @@ export default function ProfilePage() {
                         <h3 className="text-sm font-medium text-muted-foreground">
                           KYC Status
                         </h3>
-                        <Badge variant={userProfile?.kycStatus === "verified" ? "default" : userProfile?.kycStatus === "pending" ? "secondary" : "destructive"}>
+                        <Badge
+                          variant={
+                            userProfile?.kycStatus === "verified"
+                              ? "default"
+                              : userProfile?.kycStatus === "pending"
+                              ? "secondary"
+                              : "destructive"
+                          }
+                        >
                           {userProfile?.kycStatus || "Unknown"}
                         </Badge>
                       </div>
@@ -344,44 +371,56 @@ export default function ProfilePage() {
               <CardContent>
                 <div className="space-y-6">
                   {/* Connection Status */}
-                  <div className={`flex items-center justify-between p-3 rounded-lg border ${
-                    isConnected 
-                      ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800'
-                      : 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
-                  }`}>
+                  <div
+                    className={`flex items-center justify-between p-3 rounded-lg border ${
+                      isConnected
+                        ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800"
+                        : "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800"
+                    }`}
+                  >
                     <div className="flex items-center gap-3">
-                      <div className={`w-2 h-2 rounded-full ${
-                        isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-                      }`}></div>
+                      <div
+                        className={`w-2 h-2 rounded-full ${
+                          isConnected
+                            ? "bg-green-500 animate-pulse"
+                            : "bg-red-500"
+                        }`}
+                      ></div>
                       <div>
-                        <h3 className={`text-sm font-medium ${
-                          isConnected 
-                            ? 'text-green-800 dark:text-green-200'
-                            : 'text-red-800 dark:text-red-200'
-                        }`}>
-                          {isConnected ? 'Wallet Connected' : 'Wallet Disconnected'}
+                        <h3
+                          className={`text-sm font-medium ${
+                            isConnected
+                              ? "text-green-800 dark:text-green-200"
+                              : "text-red-800 dark:text-red-200"
+                          }`}
+                        >
+                          {isConnected
+                            ? "Wallet Connected"
+                            : "Wallet Disconnected"}
                         </h3>
-                        <p className={`text-xs ${
-                          isConnected 
-                            ? 'text-green-600 dark:text-green-400'
-                            : 'text-red-600 dark:text-red-400'
-                        }`}>
-                          {isConnected 
-                            ? 'Successfully connected to Web3 wallet'
-                            : 'Connect your wallet to access full features'
-                          }
+                        <p
+                          className={`text-xs ${
+                            isConnected
+                              ? "text-green-600 dark:text-green-400"
+                              : "text-red-600 dark:text-red-400"
+                          }`}
+                        >
+                          {isConnected
+                            ? "Successfully connected to Web3 wallet"
+                            : "Connect your wallet to access full features"}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge 
-                        variant={isConnected ? "success" : "destructive"} 
-                        className={isConnected 
-                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                          : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                      <Badge
+                        variant={isConnected ? "success" : "destructive"}
+                        className={
+                          isConnected
+                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                            : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
                         }
                       >
-                        {isConnected ? 'Active' : 'Inactive'}
+                        {isConnected ? "Active" : "Inactive"}
                       </Badge>
                       {!isConnected && (
                         <Button
@@ -418,22 +457,25 @@ export default function ProfilePage() {
                     </h3>
                     <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg border">
                       <code className="font-mono text-sm flex-1 break-all">
-                        {isConnected && address 
-                          ? address 
-                          : userProfile?.address || "No wallet connected"
-                        }
+                        {isConnected && address
+                          ? address
+                          : userProfile?.address || "No wallet connected"}
                       </code>
                       {(isConnected && address) || userProfile?.address ? (
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => {
-                            const addressToCopy = isConnected && address ? address : userProfile?.address;
+                            const addressToCopy =
+                              isConnected && address
+                                ? address
+                                : userProfile?.address;
                             if (addressToCopy) {
                               navigator.clipboard.writeText(addressToCopy);
                               toast({
                                 title: "Copied!",
-                                description: "Wallet address copied to clipboard",
+                                description:
+                                  "Wallet address copied to clipboard",
                               });
                             }
                           }}
@@ -450,7 +492,14 @@ export default function ProfilePage() {
                             strokeLinecap="round"
                             strokeLinejoin="round"
                           >
-                            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect>
+                            <rect
+                              width="14"
+                              height="14"
+                              x="8"
+                              y="8"
+                              rx="2"
+                              ry="2"
+                            ></rect>
                             <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
                           </svg>
                         </Button>
@@ -485,13 +534,13 @@ export default function ProfilePage() {
                         </div>
                         <div>
                           <p className="text-sm font-medium">
-                            {isConnected && chainId 
+                            {isConnected && chainId
                               ? getNetworkName(chainId)
-                              : "Celo Mainnet"
-                            }
+                              : "Celo Mainnet"}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Chain ID: {isConnected && chainId ? chainId : "42220"}
+                            Chain ID:{" "}
+                            {isConnected && chainId ? chainId : "42220"}
                           </p>
                         </div>
                       </div>
@@ -525,13 +574,14 @@ export default function ProfilePage() {
                     <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border">
                       <div>
                         <p className="text-sm font-medium">
-                          {isConnected ? "Web3 Wallet Account" : "OAuth Account"}
+                          {isConnected
+                            ? "Web3 Wallet Account"
+                            : "OAuth Account"}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {isConnected 
+                          {isConnected
                             ? "Connected via Web3 wallet"
-                            : "Authenticated via Google OAuth 2.0"
-                          }
+                            : "Authenticated via Google OAuth 2.0"}
                         </p>
                       </div>
                       <Badge variant="secondary">
