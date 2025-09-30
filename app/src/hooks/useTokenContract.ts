@@ -1,16 +1,22 @@
 "use client";
 
-import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import contractABI from "@/contract/abi.json";
+import {
+  useReadContract,
+  useWriteContract,
+  useWaitForTransactionReceipt,
+} from "wagmi";
+import contractABI from "@/contract/abi";
 
 export interface TokenContractHookProps {
   contractAddress: string;
 }
 
-export const useTokenContract = ({ contractAddress }: TokenContractHookProps) => {
+export const useTokenContract = ({
+  contractAddress,
+}: TokenContractHookProps) => {
   const { writeContract, data: hash, error, isPending } = useWriteContract();
-  
-  const { isLoading: isConfirming, isSuccess: isConfirmed } = 
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
     useWaitForTransactionReceipt({
       hash,
     });
@@ -138,7 +144,7 @@ export const useTokenContract = ({ contractAddress }: TokenContractHookProps) =>
     symbol,
     totalSupply,
     decimals,
-    
+
     // Write functions
     mintTokens,
     verifyKYC,
@@ -147,12 +153,12 @@ export const useTokenContract = ({ contractAddress }: TokenContractHookProps) =>
     addComplianceOfficer,
     updateAssetPassportCID,
     updateMaxHolding,
-    
+
     // Read functions
     getBalanceOf,
     isKYCVerified,
     isTransferExempt,
-    
+
     // Transaction state
     transactionHash: hash,
     isLoading: isPending || isConfirming,
